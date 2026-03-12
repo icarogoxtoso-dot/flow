@@ -58,6 +58,90 @@ function currentBaseUrl(): string
     return appBaseUrl();
 }
 
+function buildPasswordResetEmailHtml(string $toName, string $resetUrl): string
+{
+    $brandName = 'Clube dos Parceiros';
+
+    $nameSafe = trim($toName) !== '' ? $toName : 'usuário';
+    $nameEsc = htmlspecialchars($nameSafe, ENT_QUOTES, 'UTF-8');
+    $resetUrlEsc = htmlspecialchars($resetUrl, ENT_QUOTES, 'UTF-8');
+    $brandNameEsc = htmlspecialchars($brandName, ENT_QUOTES, 'UTF-8');
+
+    $logoUrl = currentBaseUrl() . appPath('/img/logomenor.png');
+    $logoUrlEsc = htmlspecialchars($logoUrl, ENT_QUOTES, 'UTF-8');
+
+    $preheader = 'Use o botão abaixo para redefinir sua senha (válido por 60 minutos).';
+    $preheaderEsc = htmlspecialchars($preheader, ENT_QUOTES, 'UTF-8');
+
+    $primary = '#1e3a8a';
+    $primaryHover = '#1e40af';
+    $bg = '#f0f4f8';
+    $surface = '#ffffff';
+    $text = '#0f172a';
+    $muted = '#64748b';
+    $border = '#d9e2ec';
+
+    return '<!doctype html>'
+        . '<html lang="pt-BR">'
+        . '<head>'
+        . '<meta charset="utf-8">'
+        . '<meta name="viewport" content="width=device-width, initial-scale=1">'
+        . '<meta name="color-scheme" content="light dark">'
+        . '<meta name="supported-color-schemes" content="light dark">'
+        . '<title>Recuperação de senha</title>'
+        . '</head>'
+        . '<body style="margin:0;padding:0;background:' . $bg . ';color:' . $text . ';font-family:Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">'
+        . '<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;visibility:hidden;">' . $preheaderEsc . '</div>'
+        . '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:' . $bg . ';padding:32px 12px;">'
+        . '<tr>'
+        . '<td align="center">'
+        . '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="max-width:600px;width:100%;">'
+        . '<tr>'
+        . '<td style="padding:0 0 14px 0;">'
+        . '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr>'
+        . '<td style="vertical-align:middle;">'
+        . '<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>'
+        . '<td width="44" height="44" style="width:44px;height:44px;border-radius:10px;background:' . $primary . ';box-shadow:0 2px 8px rgba(30,58,138,.18);overflow:hidden;">'
+        . '<img src="' . $logoUrlEsc . '" width="44" height="44" alt="' . $brandNameEsc . '" style="display:block;border:0;outline:none;text-decoration:none;width:44px;height:44px;object-fit:contain;padding:6px;box-sizing:border-box;">'
+        . '</td>'
+        . '<td style="padding-left:12px;vertical-align:middle;">'
+        . '<div style="font-weight:800;letter-spacing:-0.01em;color:' . $primary . ';font-size:16px;line-height:1.2;">' . $brandNameEsc . '</div>'
+        . '<div style="color:' . $muted . ';font-size:13px;line-height:1.3;margin-top:2px;">Segurança da conta</div>'
+        . '</td>'
+        . '</tr></table>'
+        . '</td>'
+        . '</tr></table>'
+        . '</td>'
+        . '</tr>'
+        . '<tr>'
+        . '<td style="background:' . $surface . ';border:1px solid ' . $border . ';border-radius:16px;box-shadow:0 4px 6px rgba(15,23,42,.05);padding:22px 20px;">'
+        . '<h1 style="margin:0 0 10px 0;font-size:20px;line-height:1.25;letter-spacing:-0.01em;">Redefinir senha</h1>'
+        . '<p style="margin:0 0 14px 0;color:' . $muted . ';font-size:14px;line-height:1.6;">Olá ' . $nameEsc . ', recebemos um pedido para redefinir sua senha. Este link é válido por <strong>60 minutos</strong>.</p>'
+        . '<div style="padding:8px 0 18px 0;">'
+        . '<a href="' . $resetUrlEsc . '" style="display:inline-block;background:' . $primary . ';color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;line-height:1;padding:12px 16px;border-radius:12px;">Redefinir senha</a>'
+        . '</div>'
+        . '<p style="margin:0 0 6px 0;color:' . $muted . ';font-size:13px;line-height:1.6;">Se o botão não funcionar, copie e cole este link no navegador:</p>'
+        . '<p style="margin:0 0 16px 0;font-size:12px;line-height:1.6;word-break:break-all;">'
+        . '<a href="' . $resetUrlEsc . '" style="color:' . $primaryHover . ';text-decoration:underline;">' . $resetUrlEsc . '</a>'
+        . '</p>'
+        . '<div style="border-top:1px solid ' . $border . ';padding-top:14px;color:' . $muted . ';font-size:12px;line-height:1.6;">'
+        . 'Se você não solicitou essa alteração, pode ignorar este e-mail com segurança.'
+        . '</div>'
+        . '</td>'
+        . '</tr>'
+        . '<tr>'
+        . '<td style="padding:14px 4px 0 4px;color:' . $muted . ';font-size:12px;line-height:1.6;text-align:center;">'
+        . 'Este e-mail foi enviado automaticamente. Não responda.'
+        . '</td>'
+        . '</tr>'
+        . '</table>'
+        . '</td>'
+        . '</tr>'
+        . '</table>'
+        . '</body>'
+        . '</html>';
+}
+
 function sendPasswordResetEmail(string $toEmail, string $toName, string $resetUrl): bool
 {
     $cfg = appConfig();
@@ -71,12 +155,13 @@ function sendPasswordResetEmail(string $toEmail, string $toName, string $resetUr
         return false;
     }
 
-    $nameSafe = trim($toName) !== '' ? $toName : 'usuario';
+    $nameSafe = trim($toName) !== '' ? $toName : 'usuário';
     $payload = [
         'from' => $from,
         'to' => [$toEmail],
         'subject' => 'Recuperação de senha - Clube dos Parceiros',
         'text' => "Olá {$nameSafe},\n\nRecebemos um pedido para redefinir sua senha.\nUse o link abaixo (válido por 60 minutos):\n{$resetUrl}\n\nSe você não solicitou, ignore este e-mail.\n",
+        'html' => buildPasswordResetEmailHtml($toName, $resetUrl),
     ];
 
     $ch = curl_init('https://api.resend.com/emails');
