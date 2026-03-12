@@ -6,8 +6,27 @@ require_once __DIR__ . '/../secure/config.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Política de Privacidade do Clube dos Parceiros: como coletamos, usamos e protegemos dados pessoais na plataforma.">
+    <link rel="canonical" href="https://clubedosparceiros.cloud/access/politica_privacidade.php">
+    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+
+    <meta property="og:site_name" content="Clube dos Parceiros">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Política de Privacidade - Clube dos Parceiros">
+    <meta property="og:description" content="Como coletamos, usamos e protegemos dados pessoais.">
+    <meta property="og:url" content="https://clubedosparceiros.cloud/access/politica_privacidade.php">
+    <meta property="og:image" content="https://clubedosparceiros.cloud/img/logo.png">
+    <meta property="og:image:alt" content="Logo do Clube dos Parceiros">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Política de Privacidade - Clube dos Parceiros">
+    <meta name="twitter:description" content="Como coletamos, usamos e protegemos dados pessoais.">
+    <meta name="twitter:image" content="https://clubedosparceiros.cloud/img/logo.png">
+
+    <meta name="theme-color" content="#1e3a8a">
     <title>Política de Privacidade - Clube dos Parceiros</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="/img/logomenor.png" type="image/png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../assets/theme.css">
     <style>

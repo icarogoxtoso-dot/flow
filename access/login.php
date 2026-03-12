@@ -454,8 +454,27 @@ $csrf = ensureCsrfToken();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Acesse sua conta no Clube dos Parceiros para criar ou editar seu perfil profissional.">
+    <link rel="canonical" href="https://clubedosparceiros.cloud/access/login.php">
+    <meta name="robots" content="noindex,nofollow">
+
+    <meta property="og:site_name" content="Clube dos Parceiros">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Entrar - Clube dos Parceiros">
+    <meta property="og:description" content="Acesse sua conta para gerenciar seu perfil.">
+    <meta property="og:url" content="https://clubedosparceiros.cloud/access/login.php">
+    <meta property="og:image" content="https://clubedosparceiros.cloud/img/logo.png">
+    <meta property="og:image:alt" content="Logo do Clube dos Parceiros">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Entrar - Clube dos Parceiros">
+    <meta name="twitter:description" content="Acesse sua conta para gerenciar seu perfil.">
+    <meta name="twitter:image" content="https://clubedosparceiros.cloud/img/logo.png">
+
+    <meta name="theme-color" content="#1e3a8a">
     <title>Entrar - Clube dos Parceiros</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="/img/logomenor.png" type="image/png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../assets/theme.css">
     <style>

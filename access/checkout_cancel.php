@@ -5,8 +5,12 @@ require_once __DIR__ . '/../secure/config.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex,nofollow">
+    <link rel="canonical" href="https://clubedosparceiros.cloud/access/checkout_cancel.php">
+    <meta name="theme-color" content="#1e3a8a">
     <title>Checkout cancelado</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="/img/logomenor.png" type="image/png">
     <link rel="stylesheet" href="../assets/theme.css">
 </head>
 <body class="bg-slate-50 text-slate-900">
@@ -22,4 +26,3 @@ require_once __DIR__ . '/../secure/config.php';
     </main>
 </body>
 </html>
-
