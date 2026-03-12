@@ -47,6 +47,31 @@ function ensureStripeTables(PDO $pdo): void
     );
 }
 
+function stripeTablesExist(PDO $pdo): bool
+{
+    $subsStmt = $pdo->query("SHOW TABLES LIKE 'subscriptions'");
+    $hasSubs = $subsStmt !== false && (bool) $subsStmt->fetchColumn();
+
+    $eventsStmt = $pdo->query("SHOW TABLES LIKE 'stripe_webhook_events'");
+    $hasEvents = $eventsStmt !== false && (bool) $eventsStmt->fetchColumn();
+
+    return $hasSubs && $hasEvents;
+}
+
+function ensureStripeTablesOrFail(PDO $pdo): void
+{
+    if (stripeTablesExist($pdo)) {
+        return;
+    }
+
+    if (envBool('STRIPE_DB_AUTOCREATE', true)) {
+        ensureStripeTables($pdo);
+        return;
+    }
+
+    throw new RuntimeException('Banco não preparado para Stripe. Rode scripts/migrations/002_stripe.sql ou habilite STRIPE_DB_AUTOCREATE=true.');
+}
+
 function subscriptionIsWithinPaidPeriod(?string $status, ?string $currentPeriodEnd): bool
 {
     if (!is_string($status) || $status === '' || !is_string($currentPeriodEnd) || $currentPeriodEnd === '') {

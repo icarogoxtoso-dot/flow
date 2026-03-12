@@ -394,10 +394,13 @@ try {
         $pdo = new PDO("mysql:host=$host;dbname=$db;charset=$charset", $user, $pass, $options);
     }
 
-    ensureStripeTables($pdo);
-    if (!userCanCreateProfile($pdo, (int) $authUserId)) {
-        header('Location: ' . appPath('/access/checkout.html'));
-        exit;
+    $requireSubscription = envBool('REQUIRE_SUBSCRIPTION', true);
+    if ($requireSubscription && !currentUserIsAdmin()) {
+        ensureStripeTablesOrFail($pdo);
+        if (!userCanCreateProfile($pdo, (int) $authUserId)) {
+            header('Location: ' . appPath('/access/checkout.html'));
+            exit;
+        }
     }
 
     $ownerStmt = $pdo->prepare('SELECT * FROM profissionais WHERE user_id = :user_id LIMIT 1');
@@ -427,8 +430,12 @@ try {
             }, $decoded)));
         }
     }
-} catch (PDOException $e) {
-    $error = 'Erro ao conectar ao banco: ' . $e->getMessage();
+} catch (Throwable $e) {
+    if ($e instanceof PDOException) {
+        $error = 'Erro ao conectar ao banco: ' . $e->getMessage();
+    } else {
+        $error = $e->getMessage();
+    }
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $error === '') {

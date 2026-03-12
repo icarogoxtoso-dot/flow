@@ -417,7 +417,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $error === '') {
                     $error = 'E-mail ou senha inválidos.';
                 } else {
                     resetAttemptFailures();
-                    loginUser((int) $userRow['id'], (string) $userRow['nome']);
+                    loginUser((int) $userRow['id'], (string) $userRow['nome'], $email);
                     header('Location: ' . $nextPath);
                     exit;
                 }

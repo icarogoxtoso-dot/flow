@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../secure/config.php';
 require_once __DIR__ . '/../secure/stripe.php';
+require_once __DIR__ . '/../secure/stripe_db.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -57,6 +58,14 @@ function verifyStripeSignature(string $payload, string $sigHeader, string $secre
     return false;
 }
 
+function tsToDatetime(?int $ts): ?string
+{
+    if (!is_int($ts) || $ts <= 0) {
+        return null;
+    }
+    return gmdate('Y-m-d H:i:s', $ts);
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     webhookFail('Método não permitido.', 405);
 }
@@ -77,13 +86,6 @@ if (!is_array($event)) {
     webhookFail('Payload inválido.', 400);
 }
 
-$type = (string) ($event['type'] ?? '');
-$object = $event['data']['object'] ?? null;
-if (!is_array($object)) {
-    echo json_encode(['ok' => true], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    exit;
-}
-
 $cfg = appConfig();
 $host = $cfg['db_host'];
 $db = $cfg['db_name'];
@@ -99,27 +101,27 @@ $options = [
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$db;charset=$charset", $user, $pass, $options);
+    ensureStripeTablesOrFail($pdo);
 } catch (PDOException $e) {
     webhookFail('Banco indisponível.', 500);
+} catch (RuntimeException $e) {
+    webhookFail($e->getMessage(), 500);
 }
 
-function updateUserSubscription(PDO $pdo, int $userId, string $customerId, string $subscriptionId, string $status, ?int $currentPeriodEnd): void
-{
-    $pdo->prepare(
-        'UPDATE usuarios
-         SET stripe_customer_id = COALESCE(NULLIF(:customer_id, \'\'), stripe_customer_id),
-             stripe_subscription_id = :subscription_id,
-             subscription_status = :status,
-             current_period_end = :current_period_end
-         WHERE id = :id
-         LIMIT 1'
-    )->execute([
-        ':customer_id' => $customerId,
-        ':subscription_id' => $subscriptionId,
-        ':status' => $status,
-        ':current_period_end' => $currentPeriodEnd,
-        ':id' => $userId,
-    ]);
+$eventId = trim((string) ($event['id'] ?? ''));
+if ($eventId !== '' && webhookEventAlreadyProcessed($pdo, $eventId)) {
+    echo json_encode(['ok' => true], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+$type = (string) ($event['type'] ?? '');
+$object = $event['data']['object'] ?? null;
+if (!is_array($object)) {
+    if ($eventId !== '') {
+        markWebhookEventProcessed($pdo, $eventId);
+    }
+    echo json_encode(['ok' => true], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
 }
 
 try {
@@ -127,56 +129,137 @@ try {
         $userId = (int) ($object['client_reference_id'] ?? 0);
         $customerId = (string) ($object['customer'] ?? '');
         $subscriptionId = (string) ($object['subscription'] ?? '');
+        $checkoutSessionId = (string) ($object['id'] ?? '');
+        $email = (string) ($object['customer_details']['email'] ?? ($object['customer_email'] ?? ''));
 
-        if ($userId > 0 && $subscriptionId !== '') {
+        if ($email === '' && $userId > 0) {
+            $uStmt = $pdo->prepare('SELECT email FROM usuarios WHERE id = :id LIMIT 1');
+            $uStmt->execute([':id' => $userId]);
+            $email = (string) ($uStmt->fetchColumn() ?: '');
+        }
+
+        $status = 'active';
+        $periodEnd = null;
+        if ($subscriptionId !== '') {
             $subRes = stripeApiRequest('GET', '/v1/subscriptions/' . rawurlencode($subscriptionId));
-            $status = 'active';
-            $periodEnd = null;
             if ($subRes['ok']) {
                 $status = (string) ($subRes['data']['status'] ?? $status);
-                $periodEnd = isset($subRes['data']['current_period_end']) ? (int) $subRes['data']['current_period_end'] : null;
+                $periodEnd = tsToDatetime(isset($subRes['data']['current_period_end']) ? (int) $subRes['data']['current_period_end'] : null);
             }
-            updateUserSubscription($pdo, $userId, $customerId, $subscriptionId, $status, $periodEnd);
         }
+
+        $upsert = $pdo->prepare(
+            "INSERT INTO subscriptions (user_id, email, stripe_customer_id, stripe_subscription_id, stripe_checkout_session_id, subscription_status, current_period_end)
+             VALUES (:user_id, :email, :customer_id, :subscription_id, :session_id, :status, :period_end)
+             ON DUPLICATE KEY UPDATE
+                 user_id = VALUES(user_id),
+                 email = VALUES(email),
+                 stripe_customer_id = VALUES(stripe_customer_id),
+                 stripe_subscription_id = VALUES(stripe_subscription_id),
+                 stripe_checkout_session_id = VALUES(stripe_checkout_session_id),
+                 subscription_status = VALUES(subscription_status),
+                 current_period_end = VALUES(current_period_end),
+                 updated_at = CURRENT_TIMESTAMP"
+        );
+        $upsert->execute([
+            ':user_id' => $userId > 0 ? $userId : null,
+            ':email' => $email !== '' ? strtolower(trim($email)) : null,
+            ':customer_id' => $customerId !== '' ? $customerId : null,
+            ':subscription_id' => $subscriptionId !== '' ? $subscriptionId : null,
+            ':session_id' => $checkoutSessionId !== '' ? $checkoutSessionId : null,
+            ':status' => $status !== '' ? $status : 'active',
+            ':period_end' => $periodEnd,
+        ]);
     } elseif ($type === 'customer.subscription.updated' || $type === 'customer.subscription.deleted') {
         $subscriptionId = (string) ($object['id'] ?? '');
         $customerId = (string) ($object['customer'] ?? '');
         $status = (string) ($object['status'] ?? '');
-        $periodEnd = isset($object['current_period_end']) ? (int) $object['current_period_end'] : null;
+        $periodEnd = tsToDatetime(isset($object['current_period_end']) ? (int) $object['current_period_end'] : null);
 
         if ($subscriptionId !== '') {
-            $uStmt = $pdo->prepare('SELECT id FROM usuarios WHERE stripe_subscription_id = :sid LIMIT 1');
-            $uStmt->execute([':sid' => $subscriptionId]);
-            $row = $uStmt->fetch();
-            if ($row) {
-                updateUserSubscription($pdo, (int) $row['id'], $customerId, $subscriptionId, ($status !== '' ? $status : 'canceled'), $periodEnd);
+            $upd = $pdo->prepare(
+                "UPDATE subscriptions
+                 SET stripe_customer_id = COALESCE(NULLIF(:customer_id, ''), stripe_customer_id),
+                     subscription_status = :status,
+                     current_period_end = :period_end,
+                     updated_at = CURRENT_TIMESTAMP
+                 WHERE stripe_subscription_id = :subscription_id
+                 LIMIT 1"
+            );
+            $upd->execute([
+                ':customer_id' => $customerId,
+                ':status' => $status !== '' ? $status : 'canceled',
+                ':period_end' => $periodEnd,
+                ':subscription_id' => $subscriptionId,
+            ]);
+
+            if ($upd->rowCount() === 0) {
+                $email = null;
+                $userId = null;
+                if ($customerId !== '') {
+                    $pick = $pdo->prepare('SELECT user_id, email FROM subscriptions WHERE stripe_customer_id = :customer_id LIMIT 1');
+                    $pick->execute([':customer_id' => $customerId]);
+                    $row = $pick->fetch(PDO::FETCH_ASSOC);
+                    if (is_array($row)) {
+                        $userId = isset($row['user_id']) ? (int) $row['user_id'] : null;
+                        $email = isset($row['email']) ? (string) $row['email'] : null;
+                    }
+                }
+
+                $ins = $pdo->prepare(
+                    "INSERT INTO subscriptions (user_id, email, stripe_customer_id, stripe_subscription_id, subscription_status, current_period_end)
+                     VALUES (:user_id, :email, :customer_id, :subscription_id, :status, :period_end)"
+                );
+                $ins->execute([
+                    ':user_id' => ($userId ?? 0) > 0 ? $userId : null,
+                    ':email' => is_string($email) && trim($email) !== '' ? strtolower(trim($email)) : null,
+                    ':customer_id' => $customerId !== '' ? $customerId : null,
+                    ':subscription_id' => $subscriptionId,
+                    ':status' => $status !== '' ? $status : 'canceled',
+                    ':period_end' => $periodEnd,
+                ]);
             }
         }
     } elseif ($type === 'invoice.paid') {
         $subscriptionId = (string) ($object['subscription'] ?? '');
-        $customerId = (string) ($object['customer'] ?? '');
         if ($subscriptionId !== '') {
-            $uStmt = $pdo->prepare('SELECT id FROM usuarios WHERE stripe_subscription_id = :sid LIMIT 1');
-            $uStmt->execute([':sid' => $subscriptionId]);
-            $row = $uStmt->fetch();
-            if ($row) {
-                $subRes = stripeApiRequest('GET', '/v1/subscriptions/' . rawurlencode($subscriptionId));
-                $status = 'active';
-                $periodEnd = null;
-                if ($subRes['ok']) {
-                    $status = (string) ($subRes['data']['status'] ?? $status);
-                    $periodEnd = isset($subRes['data']['current_period_end']) ? (int) $subRes['data']['current_period_end'] : null;
-                }
-                updateUserSubscription($pdo, (int) $row['id'], $customerId, $subscriptionId, $status, $periodEnd);
+            $subRes = stripeApiRequest('GET', '/v1/subscriptions/' . rawurlencode($subscriptionId));
+            $status = 'active';
+            $periodEnd = null;
+            $customerId = '';
+            if ($subRes['ok']) {
+                $status = (string) ($subRes['data']['status'] ?? $status);
+                $customerId = (string) ($subRes['data']['customer'] ?? '');
+                $periodEnd = tsToDatetime(isset($subRes['data']['current_period_end']) ? (int) $subRes['data']['current_period_end'] : null);
             }
+
+            $upd = $pdo->prepare(
+                "UPDATE subscriptions
+                 SET stripe_customer_id = COALESCE(NULLIF(:customer_id, ''), stripe_customer_id),
+                     subscription_status = :status,
+                     current_period_end = :period_end,
+                     updated_at = CURRENT_TIMESTAMP
+                 WHERE stripe_subscription_id = :subscription_id
+                 LIMIT 1"
+            );
+            $upd->execute([
+                ':customer_id' => $customerId,
+                ':status' => $status,
+                ':period_end' => $periodEnd,
+                ':subscription_id' => $subscriptionId,
+            ]);
         }
     }
 } catch (PDOException $e) {
-    $msg = (string) $e->getMessage();
-    if (stripos($msg, 'unknown column') !== false) {
-        webhookFail('Banco desatualizado para Stripe. Rode a migração (scripts/migrations/001_init.sql).', 500);
-    }
     webhookFail('Falha ao processar webhook.', 500);
+}
+
+if ($eventId !== '') {
+    try {
+        markWebhookEventProcessed($pdo, $eventId);
+    } catch (PDOException $e) {
+        // Ignore.
+    }
 }
 
 echo json_encode(['ok' => true], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);

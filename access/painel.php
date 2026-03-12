@@ -392,7 +392,7 @@ try {
         <div class="container mx-auto px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center gap-2">
             <div class="flex items-center gap-2 text-blue-900 font-black text-base sm:text-xl min-w-0">
                 <div class="bg-blue-900 text-white p-1.5 rounded-lg">
-                    <img src="../img/logomenor.png" alt="Logo Flow" class="h-10 w-auto rounded-md object-contain">
+                    <img src="../img/logomenor.png" alt="Logo Clube dos Parceiros" class="h-10 w-auto rounded-md object-contain">
                 </div>
                 <span class="truncate">Clube dos Parceiros</span>
             </div>

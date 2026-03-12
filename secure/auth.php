@@ -62,11 +62,53 @@ function currentUserName(): string
     return is_string($name) ? $name : '';
 }
 
-function loginUser(int $userId, string $userName): void
+function currentUserEmail(): string
+{
+    $email = $_SESSION['auth_user_email'] ?? '';
+    return is_string($email) ? $email : '';
+}
+
+function isAdminEmail(string $email): bool
+{
+    if (!envBool('ALLOW_ADMIN_LOGIN', false)) {
+        return false;
+    }
+
+    $email = strtolower(trim($email));
+    if ($email === '') {
+        return false;
+    }
+
+    $raw = (string) envValue('ADMIN_EMAILS', '');
+    if (trim($raw) === '') {
+        return false;
+    }
+
+    $parts = preg_split('/[,\s;]+/', strtolower($raw), -1, PREG_SPLIT_NO_EMPTY);
+    if (!is_array($parts) || $parts === []) {
+        return false;
+    }
+
+    return in_array($email, $parts, true);
+}
+
+function currentUserIsAdmin(): bool
+{
+    $flag = $_SESSION['auth_is_admin'] ?? null;
+    if (is_bool($flag)) {
+        return $flag;
+    }
+
+    return isAdminEmail(currentUserEmail());
+}
+
+function loginUser(int $userId, string $userName, string $userEmail = ''): void
 {
     session_regenerate_id(true);
     $_SESSION['auth_user_id'] = $userId;
     $_SESSION['auth_user_name'] = $userName;
+    $_SESSION['auth_user_email'] = $userEmail;
+    $_SESSION['auth_is_admin'] = isAdminEmail($userEmail);
     $_SESSION['__last_activity'] = time();
     $_SESSION['__last_regenerated'] = time();
 }
