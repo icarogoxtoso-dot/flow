@@ -860,11 +860,12 @@ if (preg_match('/^[a-f0-9]{32}$/', $profilePublicId)) {
                         <input id="nome" name="nome" type="text" autocomplete="name" required value="<?php echo htmlspecialchars($formValues['nome'], ENT_QUOTES, 'UTF-8'); ?>" class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-base md:text-[1.3rem] font-medium focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500">
                     </div>
                     <div class="rounded-2xl border border-dashed border-slate-300 p-5 flex flex-col sm:flex-row gap-4 sm:items-center">
-                        <div class="w-20 h-20 rounded-full bg-slate-200 border border-slate-300 flex items-center justify-center overflow-hidden">
+                        <div id="profilePhotoAvatar" class="w-20 h-20 rounded-full bg-slate-200 border border-slate-300 flex items-center justify-center overflow-hidden">
                             <?php if (is_string($existingProfilePhoto) && trim($existingProfilePhoto) !== ''): ?>
-                                <img src="<?php echo htmlspecialchars($existingProfilePhoto, ENT_QUOTES, 'UTF-8'); ?>" class="w-full h-full object-cover" alt="Foto de Perfil">
+                                <img id="profilePhotoImg" src="<?php echo htmlspecialchars($existingProfilePhoto, ENT_QUOTES, 'UTF-8'); ?>" class="w-full h-full object-cover" alt="Foto de Perfil">
                             <?php else: ?>
-                                <span class="font-bold text-3xl text-slate-500">FP</span>
+                                <span id="profilePhotoPlaceholder" class="font-bold text-3xl text-slate-500">FP</span>
+                                <img id="profilePhotoImg" src="" class="hidden w-full h-full object-cover" alt="Foto de Perfil">
                             <?php endif; ?>
                         </div>
                         <div class="flex-1">
@@ -875,8 +876,14 @@ if (preg_match('/^[a-f0-9]{32}$/', $profilePublicId)) {
                             <?php endif; ?>
                             <label class="inline-block mt-3 px-4 py-2 rounded-xl border border-blue-300 bg-blue-50 text-blue-700 font-semibold cursor-pointer text-sm md:text-[1.1rem]">
                                 Selecionar foto
-                                <input type="file" name="foto_perfil" accept="image/jpeg,image/png,image/webp" class="hidden">
+                                <input id="profilePhotoInput" type="file" name="foto_perfil" accept="image/jpeg,image/png,image/webp" class="hidden">
                             </label>
+                            <p id="profilePhotoClientStatus" class="hidden mt-2 text-sm font-semibold text-blue-700"></p>
+                            <div id="profilePhotoZoomWrap" class="hidden mt-3">
+                                <label for="profilePhotoZoom" class="block text-xs font-semibold text-slate-500 mb-2">Ajustar enquadramento</label>
+                                <input id="profilePhotoZoom" type="range" min="1" max="3" step="0.05" value="1" class="w-full">
+                                <p class="mt-2 text-xs text-slate-500">Dica: ajuste o zoom e depois toque em "Confirmar e Salvar".</p>
+                            </div>
                         </div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -989,6 +996,212 @@ if (preg_match('/^[a-f0-9]{32}$/', $profilePublicId)) {
             const stepProgressText = document.getElementById('stepProgressText');
             let currentStep = Number(currentStepInput.value) || 1;
 
+            const profilePhotoAvatar = document.getElementById('profilePhotoAvatar');
+            const profilePhotoInput = document.getElementById('profilePhotoInput');
+            const profilePhotoStatus = document.getElementById('profilePhotoClientStatus');
+            const profilePhotoImg = document.getElementById('profilePhotoImg');
+            const profilePhotoPlaceholder = document.getElementById('profilePhotoPlaceholder');
+            const profilePhotoZoomWrap = document.getElementById('profilePhotoZoomWrap');
+            const profilePhotoZoom = document.getElementById('profilePhotoZoom');
+            let profilePhotoPreviewUrl = '';
+            let profilePhotoZoomValue = 1;
+            let profilePhotoOffsetX = 0; // -1..1
+            let profilePhotoOffsetY = 0; // -1..1
+            let profilePhotoDragActive = false;
+            let profilePhotoDragStartX = 0;
+            let profilePhotoDragStartY = 0;
+            let profilePhotoDragStartOffsetX = 0;
+            let profilePhotoDragStartOffsetY = 0;
+            let profilePhotoNaturalWidth = 0;
+            let profilePhotoNaturalHeight = 0;
+
+            function clamp(n, min, max) {
+                return Math.min(max, Math.max(min, n));
+            }
+
+            function updateProfilePhotoPreviewTransform() {
+                if (!profilePhotoImg || !profilePhotoAvatar) {
+                    return;
+                }
+                const rect = profilePhotoAvatar.getBoundingClientRect();
+                const size = Math.max(1, Math.min(rect.width || 80, rect.height || 80));
+                const maxTranslate = ((profilePhotoZoomValue || 1) - 1) * size * 0.45;
+                const tx = (profilePhotoOffsetX || 0) * maxTranslate;
+                const ty = (profilePhotoOffsetY || 0) * maxTranslate;
+                profilePhotoImg.style.transformOrigin = 'center';
+                profilePhotoImg.style.transform = 'translate(' + String(tx.toFixed(2)) + 'px,' + String(ty.toFixed(2)) + 'px) scale(' + String(profilePhotoZoomValue) + ')';
+            }
+
+            if (profilePhotoInput && profilePhotoStatus) {
+                profilePhotoInput.addEventListener('change', function () {
+                    const file = (profilePhotoInput.files && profilePhotoInput.files[0]) ? profilePhotoInput.files[0] : null;
+                    if (!file) {
+                        profilePhotoStatus.textContent = '';
+                        profilePhotoStatus.classList.add('hidden');
+                        if (profilePhotoZoomWrap) {
+                            profilePhotoZoomWrap.classList.add('hidden');
+                        }
+                        if (profilePhotoPreviewUrl !== '') {
+                            URL.revokeObjectURL(profilePhotoPreviewUrl);
+                            profilePhotoPreviewUrl = '';
+                        }
+                        return;
+                    }
+
+                    profilePhotoStatus.textContent = 'Foto selecionada: ' + file.name;
+                    profilePhotoStatus.classList.remove('hidden');
+
+                    if (profilePhotoImg && file.type && file.type.startsWith('image/')) {
+                        if (profilePhotoPreviewUrl !== '') {
+                            URL.revokeObjectURL(profilePhotoPreviewUrl);
+                        }
+                        profilePhotoPreviewUrl = URL.createObjectURL(file);
+                        profilePhotoImg.src = profilePhotoPreviewUrl;
+                        profilePhotoImg.classList.remove('hidden');
+                        if (profilePhotoPlaceholder) {
+                            profilePhotoPlaceholder.classList.add('hidden');
+                        }
+
+                        profilePhotoZoomValue = 1;
+                        profilePhotoOffsetX = 0;
+                        profilePhotoOffsetY = 0;
+                        if (profilePhotoZoom) {
+                            profilePhotoZoom.value = '1';
+                        }
+                        if (profilePhotoZoomWrap) {
+                            profilePhotoZoomWrap.classList.remove('hidden');
+                        }
+                        updateProfilePhotoPreviewTransform();
+
+                        const img = new Image();
+                        img.onload = function () {
+                            profilePhotoNaturalWidth = img.naturalWidth || 0;
+                            profilePhotoNaturalHeight = img.naturalHeight || 0;
+                        };
+                        img.src = profilePhotoPreviewUrl;
+                    }
+                });
+            }
+
+            if (profilePhotoZoom && profilePhotoImg) {
+                profilePhotoZoom.addEventListener('input', function () {
+                    const v = Number(profilePhotoZoom.value) || 1;
+                    profilePhotoZoomValue = Math.min(3, Math.max(1, v));
+                    updateProfilePhotoPreviewTransform();
+                });
+            }
+
+            if (profilePhotoAvatar && profilePhotoImg) {
+                const onPointerDown = function (ev) {
+                    if (!profilePhotoZoomWrap || profilePhotoZoomWrap.classList.contains('hidden')) {
+                        return;
+                    }
+                    if (!profilePhotoInput || !profilePhotoInput.files || !profilePhotoInput.files[0]) {
+                        return;
+                    }
+                    profilePhotoDragActive = true;
+                    profilePhotoDragStartX = ev.clientX || 0;
+                    profilePhotoDragStartY = ev.clientY || 0;
+                    profilePhotoDragStartOffsetX = profilePhotoOffsetX || 0;
+                    profilePhotoDragStartOffsetY = profilePhotoOffsetY || 0;
+                    try { profilePhotoAvatar.setPointerCapture(ev.pointerId); } catch (e) {}
+                    ev.preventDefault();
+                };
+
+                const onPointerMove = function (ev) {
+                    if (!profilePhotoDragActive) return;
+                    const rect = profilePhotoAvatar.getBoundingClientRect();
+                    const size = Math.max(1, Math.min(rect.width || 80, rect.height || 80));
+                    const dx = (ev.clientX || 0) - profilePhotoDragStartX;
+                    const dy = (ev.clientY || 0) - profilePhotoDragStartY;
+                    const divisor = size * 0.65;
+                    profilePhotoOffsetX = clamp(profilePhotoDragStartOffsetX + (dx / divisor), -1, 1);
+                    profilePhotoOffsetY = clamp(profilePhotoDragStartOffsetY + (dy / divisor), -1, 1);
+                    updateProfilePhotoPreviewTransform();
+                    ev.preventDefault();
+                };
+
+                const onPointerUp = function () {
+                    profilePhotoDragActive = false;
+                };
+
+                profilePhotoAvatar.style.touchAction = 'none';
+                profilePhotoAvatar.addEventListener('pointerdown', onPointerDown);
+                profilePhotoAvatar.addEventListener('pointermove', onPointerMove);
+                profilePhotoAvatar.addEventListener('pointerup', onPointerUp);
+                profilePhotoAvatar.addEventListener('pointercancel', onPointerUp);
+                profilePhotoAvatar.addEventListener('pointerleave', onPointerUp);
+            }
+
+            async function resizeProfilePhotoIfNeeded() {
+                if (!profilePhotoInput || !profilePhotoInput.files || !profilePhotoInput.files[0]) {
+                    return true;
+                }
+                const file = profilePhotoInput.files[0];
+                if (!file.type || !file.type.startsWith('image/')) {
+                    return true;
+                }
+                if (!profilePhotoNaturalWidth || !profilePhotoNaturalHeight) {
+                    return true;
+                }
+
+                const side = Math.floor(Math.min(profilePhotoNaturalWidth, profilePhotoNaturalHeight) / (profilePhotoZoomValue || 1));
+                if (!side || side < 64) {
+                    return true;
+                }
+
+                const maxX = Math.max(0, profilePhotoNaturalWidth - side);
+                const maxY = Math.max(0, profilePhotoNaturalHeight - side);
+                const ox = clamp(((profilePhotoOffsetX || 0) + 1) / 2, 0, 1);
+                const oy = clamp(((profilePhotoOffsetY || 0) + 1) / 2, 0, 1);
+                const sx = Math.floor(maxX * ox);
+                const sy = Math.floor(maxY * oy);
+
+                const img = new Image();
+                img.src = profilePhotoImg ? profilePhotoImg.src : '';
+                await new Promise((resolve) => {
+                    if (!img.src) return resolve();
+                    if (img.complete) return resolve();
+                    img.onload = resolve;
+                    img.onerror = resolve;
+                });
+
+                if (!img.complete || !img.naturalWidth) {
+                    return true;
+                }
+
+                const canvas = document.createElement('canvas');
+                canvas.width = 512;
+                canvas.height = 512;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) {
+                    return true;
+                }
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+                ctx.drawImage(img, sx, sy, side, side, 0, 0, 512, 512);
+
+                const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.9));
+                if (!blob) {
+                    return true;
+                }
+
+                try {
+                    const dt = new DataTransfer();
+                    const newFile = new File([blob], 'profile.jpg', { type: 'image/jpeg' });
+                    dt.items.add(newFile);
+                    profilePhotoInput.files = dt.files;
+                    if (profilePhotoStatus) {
+                        profilePhotoStatus.textContent = 'Foto pronta para envio (redimensionada).';
+                        profilePhotoStatus.classList.remove('hidden');
+                    }
+                } catch (e) {
+                    return true;
+                }
+
+                return true;
+            }
+
             function validateStep(step) {
                 if (step === 1) {
                     const nome = document.getElementById('nome');
@@ -1091,8 +1304,28 @@ if (preg_match('/^[a-f0-9]{32}$/', $profilePublicId)) {
                 }
             });
 
-            form.addEventListener('submit', function () {
+            let didProgrammaticSubmit = false;
+            form.addEventListener('submit', async function (ev) {
                 currentStepInput.value = '4';
+
+                if (didProgrammaticSubmit) {
+                    return;
+                }
+
+                if (profilePhotoInput && profilePhotoInput.files && profilePhotoInput.files[0] && profilePhotoZoomWrap && !profilePhotoZoomWrap.classList.contains('hidden')) {
+                    ev.preventDefault();
+                    try {
+                        if (btnSubmit) {
+                            btnSubmit.disabled = true;
+                            btnSubmit.classList.add('opacity-80', 'cursor-wait');
+                            btnSubmit.textContent = 'Processando foto...';
+                        }
+                        await resizeProfilePhotoIfNeeded();
+                    } finally {
+                        didProgrammaticSubmit = true;
+                        form.submit();
+                    }
+                }
             });
             updateStepper();
         })();
