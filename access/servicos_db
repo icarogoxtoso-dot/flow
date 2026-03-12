@@ -1,0 +1,48 @@
+﻿CREATE DATABASE IF NOT EXISTS servicos_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE servicos_db;
+
+CREATE TABLE IF NOT EXISTS profissionais (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome_completo VARCHAR(150) NOT NULL,
+    foto_perfil LONGTEXT NULL, -- Para URLs longas ou Base64
+    telefone VARCHAR(20) NULL,
+    whatsapp VARCHAR(20) NULL,
+    instagram VARCHAR(120) NULL,
+    site_url VARCHAR(255) NULL,
+    facebook VARCHAR(255) NULL,
+    youtube VARCHAR(255) NULL,
+    email VARCHAR(100) NULL,
+    bio TEXT NULL,
+    servicos JSON NULL, -- Ex: ["Troca de fiação", "Instalação de disjuntor"]
+    fotos_trabalho JSON NULL, -- Ex: ["url1.jpg", "url2.jpg"]
+    online TINYINT(1) NOT NULL DEFAULT 1,
+    bairro VARCHAR(80) NULL,
+    cidade VARCHAR(80) NULL,
+    tags VARCHAR(255) NULL, 
+    desde YEAR NULL,
+    nota DECIMAL(2,1) NOT NULL DEFAULT 0.0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Inserindo um exemplo com os novos campos
+INSERT INTO profissionais (
+    nome_completo, foto_perfil, telefone, whatsapp, instagram, site_url, facebook, youtube, email, bio, servicos, fotos_trabalho, online, bairro, cidade, tags, desde, nota
+) VALUES (
+    'Rogerio Silva', 
+    'https://link-da-foto.com/perfil.jpg', 
+    '5511999999999', 
+    '5511999999999', 
+    'rogerio.ar',
+    'https://rogerioeletrica.com.br',
+    'https://facebook.com/rogerio.ar',
+    'https://youtube.com/@rogerioar',
+    'rogerio.eletrica@email.com', 
+    'Especialista em instalações residenciais com mais de 10 anos de experiência.', 
+    '["Instalação de Ar-condicionado", "Manutenção Elétrica", "Quadros de Força"]', 
+    '["job1.jpg", "job2.jpg"]',
+    1, 
+    'Pinheiros', 
+    'Sao Paulo', 
+    'Eletrica, Ar-condicionado', 
+    2019, 
+    0.0
+);

@@ -1,0 +1,11 @@
+.env
+
+# Runtime / writable dirs
+storage/
+uploads/*
+!uploads/.htaccess
+
+# OS / editor
+Thumbs.db
+Desktop.ini
+.DS_Store

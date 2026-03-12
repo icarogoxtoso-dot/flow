@@ -1,0 +1,75 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+
+/* Tema visual compartilhado entre as paginas principais */
+:root {
+    --flow-bg: #f0f4f8;
+    --flow-surface: #ffffff;
+    --flow-text: #0f172a;
+    --flow-muted: #64748b;
+    --flow-border: #d9e2ec;
+    --flow-primary: #1e3a8a;
+    --flow-primary-hover: #1e40af;
+    --flow-primary-soft: #eff6ff;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: var(--flow-bg);
+    color: var(--flow-text);
+}
+
+.top-header {
+    background: var(--flow-surface);
+    border-bottom: 1px solid var(--flow-border);
+}
+
+.brand-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: var(--flow-primary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(30, 58, 138, 0.18);
+}
+
+.brand-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 6px;
+}
+
+.brand-title {
+    color: var(--flow-primary);
+    font-size: 1.05rem;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+}
+
+.bg-navy {
+    background-color: var(--flow-primary);
+}
+
+.bg-navy:hover {
+    background-color: var(--flow-primary-hover);
+}
+
+.card-shadow {
+    box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.05), 0 2px 4px -1px rgba(15, 23, 42, 0.03);
+}
+
+.card-shadow:hover {
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08), 0 4px 10px rgba(15, 23, 42, 0.05);
+}
+
+.pro-card {
+    background: var(--flow-surface);
+    border-radius: 1rem;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}

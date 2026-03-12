@@ -1,0 +1,22 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Block dotfiles (allow ACME challenge)
+    RewriteRule (^|/)\.(?!well-known/) - [F,L]
+
+    # Block internal folders and secrets
+    RewriteRule ^(secure|storage|scripts|docs)/ - [F,L]
+    RewriteRule ^\.env(\.|$) - [F,L]
+</IfModule>
+
+<IfModule mod_authz_core.c>
+    <FilesMatch "(?i)^\.env">
+        Require all denied
+    </FilesMatch>
+</IfModule>
+<IfModule !mod_authz_core.c>
+    <FilesMatch "(?i)^\.env">
+        Order allow,deny
+        Deny from all
+    </FilesMatch>
+</IfModule>

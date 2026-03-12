@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assinatura para Profissionais - Clube dos Parceiros</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/theme.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- AOS Animate on Scroll -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+            overflow-x: hidden;
+        }
+        h1 { font-size: 32px !important; line-height: 1.2 !important; }
+        h2, h3 { font-size: 22px !important; line-height: 1.25 !important; }
+        p { font-size: 20px !important; line-height: 1.4 !important; }
+        .bg-professional-blue {
+            background-color: #1E3A8A;
+        }
+        .text-professional-blue {
+            color: #1E3A8A;
+        }
+        .border-professional-blue {
+            border-color: #1E3A8A;
+        }
+        .card-shadow {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+        /* Animação personalizada para o Check */
+        .check-animate {
+            transition: transform 0.3s ease;
+        }
+        .group:hover .check-animate {
+            transform: scale(1.2);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-gray-900">
+
+    <!-- Seção de Hero / Assinatura -->
+    <section class="py-16 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-4xl mx-auto text-center mb-12" data-aos="fade-up">
+            <!-- Badge -->
+            <span class="inline-block px-3 py-1 mb-4 text-xs font-bold tracking-widest text-professional-blue uppercase bg-blue-100 rounded-full">
+                Disponível em todo Brasil
+            </span>
+            
+            <!-- Título Principal -->
+            <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 tracking-tight mb-4">
+                Crie seu perfil profissional e <br class="hidden md:block"> comece a receber clientes
+            </h1>
+            
+            <!-- Subtítulo -->
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                Por apenas <span class="font-bold text-gray-900">R$5 por mês</span>, você cria seu perfil no Clube dos Parceiros e aparece para pessoas que estão procurando serviços de manutenção na sua região.
+            </p>
+        </div>
+
+        <!-- Card de Plano Centralizado -->
+        <div class="max-w-md mx-auto" data-aos="zoom-in" data-aos-delay="200">
+            <div class="bg-white rounded-3xl p-8 border border-gray-100 card-shadow relative overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
+                <div class="text-center mb-8">
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Plano Profissional</h3>
+                    <div class="flex items-center justify-center gap-1">
+                        <span class="text-2xl font-semibold text-gray-900">R$</span>
+                        <span class="text-6xl font-black text-professional-blue">5</span>
+                        <span class="text-gray-500 font-medium">/ mês</span>
+                    </div>
+                    <p class="mt-4 text-sm text-gray-500 font-medium">
+                        Sem contrato • Cancele quando quiser
+                    </p>
+                </div>
+
+                <!-- Benefícios -->
+                <div class="space-y-4 mb-8">
+                    <div class="flex items-start gap-3 text-gray-700 group cursor-default">
+                        <i data-lucide="check-circle-2" class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0 check-animate"></i>
+                        <span class="text-sm">Criar perfil profissional completo</span>
+                    </div>
+                    <div class="flex items-start gap-3 text-gray-700 group cursor-default">
+                        <i data-lucide="check-circle-2" class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0 check-animate"></i>
+                        <span class="text-sm">Aparecer nas buscas de clientes</span>
+                    </div>
+                    <div class="flex items-start gap-3 text-gray-700 group cursor-default">
+                        <i data-lucide="check-circle-2" class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0 check-animate"></i>
+                        <span class="text-sm">Receber pedidos de orçamento</span>
+                    </div>
+                    <div class="flex items-start gap-3 text-gray-700 group cursor-default">
+                        <i data-lucide="check-circle-2" class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0 check-animate"></i>
+                        <span class="text-sm">Mostrar telefone e WhatsApp</span>
+                    </div>
+                    <div class="flex items-start gap-3 text-gray-700 group cursor-default">
+                        <i data-lucide="check-circle-2" class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0 check-animate"></i>
+                        <span class="text-sm">Divulgar seus serviços no site</span>
+                    </div>
+                    <div class="flex items-start gap-3 text-gray-700 group cursor-default">
+                        <i data-lucide="check-circle-2" class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0 check-animate"></i>
+                        <span class="text-sm">Alcance clientes da sua região</span>
+                    </div>
+                </div>
+
+                <!-- Botão CTA -->
+                <div class="text-center">
+                    <a href="subscribe.php" class="block w-full bg-professional-blue hover:bg-blue-800 text-white font-bold py-4 px-6 rounded-2xl transition-all transform hover:scale-[1.05] active:scale-95 shadow-lg shadow-blue-200">
+                        Assinar e continuar
+                    </a>
+                    <a href="login.php?mode=login" class="mt-3 block w-full border-2 border-gray-200 hover:border-professional-blue text-gray-800 font-bold py-3 px-6 rounded-2xl transition-all hover:text-professional-blue bg-white">
+                        Entrar (já paguei)
+                    </a>
+                    <p class="mt-4 text-xs text-gray-400">
+                        Leva menos de 2 minutos para começar.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Como Funciona (3 Passos) -->
+    <section class="py-16 bg-white overflow-hidden">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-2xl md:text-3xl font-bold text-center text-gray-900 mb-12" data-aos="fade-up">Como funciona</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Passo 1 -->
+                <div class="text-center group" data-aos="fade-right" data-aos-delay="100">
+                    <div class="w-20 h-20 bg-blue-50 text-professional-blue rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:bg-professional-blue group-hover:text-white transition-all duration-500 transform group-hover:rotate-6">
+                        <i data-lucide="user-plus" class="w-10 h-10"></i>
+                    </div>
+                    <h4 class="font-bold text-lg mb-2 text-gray-900">Passo 1</h4>
+                    <p class="text-gray-600">Crie seu perfil profissional</p>
+                </div>
+                <!-- Passo 2 -->
+                <div class="text-center group" data-aos="fade-up" data-aos-delay="200">
+                    <div class="w-20 h-20 bg-blue-50 text-professional-blue rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:bg-professional-blue group-hover:text-white transition-all duration-500 transform group-hover:-rotate-6">
+                        <i data-lucide="map-pin" class="w-10 h-10"></i>
+                    </div>
+                    <h4 class="font-bold text-lg mb-2 text-gray-900">Passo 2</h4>
+                    <p class="text-gray-600">Escolha seus serviços e região</p>
+                </div>
+                <!-- Passo 3 -->
+                <div class="text-center group" data-aos="fade-left" data-aos-delay="300">
+                    <div class="w-20 h-20 bg-blue-50 text-professional-blue rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:bg-professional-blue group-hover:text-white transition-all duration-500 transform group-hover:rotate-6">
+                        <i data-lucide="message-square" class="w-10 h-10"></i>
+                    </div>
+                    <h4 class="font-bold text-lg mb-2 text-gray-900">Passo 3</h4>
+                    <p class="text-gray-600">Comece a receber contatos de clientes</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Prova Social -->
+    <section class="py-16 bg-gray-50 overflow-hidden">
+        <div class="max-w-4xl mx-auto px-4 text-center">
+            <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4" data-aos="fade-up">Profissionais já estão se cadastrando</h2>
+            <p class="text-gray-600 mb-10 leading-relaxed" data-aos="fade-up" data-aos-delay="100">
+                Eletricistas, encanadores, técnicos de ar-condicionado e diversos especialistas já estão usando a plataforma para conseguir novos clientes.
+            </p>
+            
+            <!-- Mock de Avatares -->
+            <div class="flex justify-center -space-x-4" data-aos="zoom-in" data-aos-delay="200">
+                <img class="w-14 h-14 rounded-full border-4 border-white object-cover shadow-sm transition-transform hover:scale-110 hover:z-10" src="https://images.unsplash.com/photo-1540569014015-19a7be504e3a?w=100&h=100&fit=crop" alt="Profissional 1">
+                <img class="w-14 h-14 rounded-full border-4 border-white object-cover shadow-sm transition-transform hover:scale-110 hover:z-10" src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?w=100&h=100&fit=crop" alt="Profissional 2">
+                <img class="w-14 h-14 rounded-full border-4 border-white object-cover shadow-sm transition-transform hover:scale-110 hover:z-10" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" alt="Profissional 3">
+                <div class="w-14 h-14 rounded-full border-4 border-white bg-blue-500 text-white flex items-center justify-center text-xs font-bold transition-transform hover:scale-110 hover:z-10 cursor-default">+150</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Rodapé da Seção -->
+    <footer class="py-12 border-t border-gray-200" data-aos="fade-in">
+        <div class="max-w-4xl mx-auto px-4 text-center">
+            <p class="text-sm text-gray-500 italic">
+                A assinatura serve apenas para manter seu perfil ativo e visível dentro da plataforma.
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Inicializa os ícones Lucide
+        lucide.createIcons();
+
+        // Inicializa as animações AOS
+        AOS.init({
+            duration: 800,
+            once: true,
+            offset: 100,
+            easing: 'ease-out-cubic'
+        });
+    </script>
+</body>
+</html>
