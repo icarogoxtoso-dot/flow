@@ -356,6 +356,7 @@ $success = '';
 $existingProfile = null;
 $existingWorkPhotos = [];
 $existingProfilePhoto = null;
+$profilePhotoJustUploaded = false;
 $formValues = [
     'nome' => '',
     'cidade' => '',
@@ -443,6 +444,80 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $error === '') {
         $error = 'Sessão expirada. Recarregue a página e tente novamente.';
     }
 
+    $action = strtolower(trim((string) ($_POST['action'] ?? '')));
+    if ($error === '' && $action === 'delete_profile') {
+        try {
+            $profileStmt = $pdo->prepare('SELECT id, foto_perfil, fotos_trabalhos FROM profissionais WHERE user_id = :user_id LIMIT 1');
+            $profileStmt->execute([':user_id' => (int) $authUserId]);
+            $profileRow = $profileStmt->fetch() ?: null;
+
+            if (!$profileRow) {
+                $error = 'Perfil não encontrado.';
+            } else {
+                $profId = (int) ($profileRow['id'] ?? 0);
+                $deleteStmt = $pdo->prepare('DELETE FROM profissionais WHERE id = :id AND user_id = :user_id LIMIT 1');
+                $deleteStmt->execute([
+                    ':id' => $profId,
+                    ':user_id' => (int) $authUserId,
+                ]);
+
+                $paths = [];
+                $photo = trim((string) ($profileRow['foto_perfil'] ?? ''));
+                if ($photo !== '') {
+                    $paths[] = $photo;
+                }
+                $photosRaw = (string) ($profileRow['fotos_trabalhos'] ?? '');
+                $decoded = json_decode($photosRaw, true);
+                if (is_array($decoded)) {
+                    foreach ($decoded as $item) {
+                        if (is_string($item) && trim($item) !== '') {
+                            $paths[] = trim($item);
+                        }
+                    }
+                }
+
+                $root = dirname(__DIR__);
+                $basePath = rtrim((string) ($cfg['app_base_path'] ?? ''), '/');
+                foreach (array_values(array_unique($paths)) as $storedPath) {
+                    $path = parse_url($storedPath, PHP_URL_PATH);
+                    if (!is_string($path) || $path === '') {
+                        $path = $storedPath;
+                    }
+                    if ($basePath !== '' && str_starts_with($path, $basePath . '/')) {
+                        $path = substr($path, strlen($basePath));
+                    }
+                    if (!str_starts_with($path, '/uploads/')) {
+                        continue;
+                    }
+                    $fsPath = $root . $path;
+                    if (is_file($fsPath)) {
+                        @unlink($fsPath);
+                    }
+                }
+
+                $existingProfile = null;
+                $existingWorkPhotos = [];
+                $existingProfilePhoto = null;
+                $formValues = [
+                    'nome' => '',
+                    'cidade' => '',
+                    'bairro' => '',
+                    'tags' => '',
+                    'descricao' => '',
+                    'desde' => '',
+                    'whatsapp' => '',
+                    'instagram' => '',
+                    'site_url' => '',
+                    'facebook' => '',
+                    'youtube' => '',
+                    'online' => true,
+                ];
+                $success = 'Perfil excluído com sucesso.';
+            }
+        } catch (Throwable $e) {
+            $error = 'Não foi possível excluir o perfil no momento.';
+        }
+    } else {
     $formValues['nome'] = trim((string) ($_POST['nome'] ?? ''));
     $formValues['cidade'] = trim((string) ($_POST['cidade'] ?? ''));
     $formValues['bairro'] = trim((string) ($_POST['bairro'] ?? ''));
@@ -516,6 +591,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $error === '') {
             $error = $profileUploadError;
         } elseif ($uploadedProfile !== null) {
             $profilePhotoPath = $uploadedProfile;
+            $profilePhotoJustUploaded = true;
         }
     }
 
@@ -639,9 +715,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $error === '') {
             }
 
             $success = 'Perfil salvo com sucesso.';
+            if ($profilePhotoJustUploaded) {
+                $success .= ' Foto de perfil enviada com sucesso.';
+            }
         } catch (Throwable $e) {
             $error = 'Erro ao salvar o perfil: ' . $e->getMessage();
         }
+    }
     }
 }
 
@@ -711,6 +791,13 @@ if (preg_match('/^[a-f0-9]{32}$/', $profilePublicId)) {
                     <a href="<?php echo htmlspecialchars($profileLink, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener" class="px-3 sm:px-5 py-2.5 rounded-xl border border-blue-300 text-blue-700 font-semibold text-xs sm:text-sm hover:bg-blue-50">Ver perfil</a>
                 <?php else: ?>
                     <span class="px-3 sm:px-5 py-2.5 rounded-xl border border-slate-200 text-slate-400 font-semibold text-xs sm:text-sm cursor-not-allowed" title="Salve o perfil para visualizar">Ver perfil</span>
+                <?php endif; ?>
+                <?php if ($existingProfile): ?>
+                    <form method="post" class="inline" onsubmit="return confirm('Tem certeza que deseja excluir seu perfil? Essa ação não pode ser desfeita.');">
+                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf, ENT_QUOTES, 'UTF-8'); ?>">
+                        <input type="hidden" name="action" value="delete_profile">
+                        <button type="submit" class="px-3 sm:px-5 py-2.5 rounded-xl border border-red-200 text-red-600 font-semibold text-xs sm:text-sm hover:bg-red-50">Excluir perfil</button>
+                    </form>
                 <?php endif; ?>
                 <a href="<?php echo htmlspecialchars(appPath('/access/logout.php'), ENT_QUOTES, 'UTF-8'); ?>" class="px-3 sm:px-5 py-2.5 rounded-xl border border-red-200 text-red-500 font-semibold text-xs sm:text-sm hover:bg-red-50">Sair</a>
             </div>
@@ -783,6 +870,9 @@ if (preg_match('/^[a-f0-9]{32}$/', $profilePublicId)) {
                         <div class="flex-1">
                             <h3 class="text-xl md:text-2xl font-bold">Foto de Perfil</h3>
                             <p class="text-sm md:text-[1.2rem] text-slate-500 mt-1">Esta foto será salva no seu perfil público.</p>
+                            <?php if ($success !== '' && $profilePhotoJustUploaded): ?>
+                                <p class="mt-2 text-sm font-semibold text-green-700">Foto de perfil atualizada.</p>
+                            <?php endif; ?>
                             <label class="inline-block mt-3 px-4 py-2 rounded-xl border border-blue-300 bg-blue-50 text-blue-700 font-semibold cursor-pointer text-sm md:text-[1.1rem]">
                                 Selecionar foto
                                 <input type="file" name="foto_perfil" accept="image/jpeg,image/png,image/webp" class="hidden">
