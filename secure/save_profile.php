@@ -19,7 +19,7 @@ $db = $cfg['db_name'];
 $user = $cfg['db_user'];
 $pass = $cfg['db_pass'];
 $charset = $cfg['db_charset'];
-$schemaFile = __DIR__ . '/../access/servicos_db';
+$schemaFile = __DIR__ . '/../scripts/migrations/001_init.sql';
 
 $options = [
     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
@@ -38,7 +38,7 @@ function loadSchemaStatements(string $filePath): array
         return [];
     }
 
-    $allowedStarts = ['CREATE TABLE', 'INSERT INTO', 'ALTER TABLE', 'DROP TABLE'];
+    $allowedStarts = ['CREATE TABLE', 'ALTER TABLE'];
     $statements = [];
     $buffer = '';
 
