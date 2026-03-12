@@ -92,8 +92,8 @@ if (isset($_FILES['feedback_image']) && is_array($_FILES['feedback_image'])) {
         if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
             jsonError('Não foi possível enviar a imagem do feedback.');
         }
-        if ((int) ($file['size'] ?? 0) > 5 * 1024 * 1024) {
-            jsonError('A imagem do feedback deve ter no máximo 5MB.');
+        if ((int) ($file['size'] ?? 0) > 15 * 1024 * 1024) {
+            jsonError('A imagem do feedback deve ter no máximo 15MB.');
         }
         $tmpPath = (string) ($file['tmp_name'] ?? '');
         if ($tmpPath === '' || !is_uploaded_file($tmpPath)) {

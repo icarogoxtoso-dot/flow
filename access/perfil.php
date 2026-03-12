@@ -118,8 +118,27 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Confira o perfil profissional de <?php echo htmlspecialchars($name, ENT_QUOTES, 'UTF-8'); ?> no Clube dos Parceiros. Veja serviços e formas de contato.">
+    <link rel="canonical" href="<?php echo htmlspecialchars(rtrim((string) (appConfig()['app_url'] ?? ''), '/') . appPath('/access/perfil.php?p=' . $publicProfileId), ENT_QUOTES, 'UTF-8'); ?>">
+    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+
+    <meta property="og:site_name" content="Clube dos Parceiros">
+    <meta property="og:type" content="profile">
+    <meta property="og:title" content="Perfil - <?php echo htmlspecialchars($name, ENT_QUOTES, 'UTF-8'); ?>">
+    <meta property="og:description" content="Confira serviços e formas de contato.">
+    <meta property="og:url" content="<?php echo htmlspecialchars(rtrim((string) (appConfig()['app_url'] ?? ''), '/') . appPath('/access/perfil.php?p=' . $publicProfileId), ENT_QUOTES, 'UTF-8'); ?>">
+    <meta property="og:image" content="https://clubedosparceiros.cloud/img/logo.png">
+    <meta property="og:image:alt" content="Logo do Clube dos Parceiros">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Perfil - <?php echo htmlspecialchars($name, ENT_QUOTES, 'UTF-8'); ?>">
+    <meta name="twitter:description" content="Confira serviços e formas de contato no Clube dos Parceiros.">
+    <meta name="twitter:image" content="https://clubedosparceiros.cloud/img/logo.png">
+
+    <meta name="theme-color" content="#1e3a8a">
     <title>Perfil - <?php echo htmlspecialchars($name, ENT_QUOTES, 'UTF-8'); ?></title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="/img/logomenor.png" type="image/png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="../assets/theme.css">
@@ -605,7 +624,7 @@ try {
                     <textarea id="fbComment" name="comment" rows="3" maxlength="500" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" placeholder="Conte como foi o atendimento (mínimo 10 caracteres)." required></textarea>
                 </div>
                 <div class="md:col-span-2">
-                    <label for="feedbackImage" class="block text-sm font-semibold text-slate-700 mb-1">Imagem do serviço (opcional, máx. 5MB)</label>
+                    <label for="feedbackImage" class="block text-sm font-semibold text-slate-700 mb-1">Imagem do serviço (opcional, máx. 15MB)</label>
                     <input id="feedbackImage" name="feedback_image" type="file" accept="image/png,image/jpeg,image/webp" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
                 </div>
                 <div class="md:col-span-2">
@@ -791,8 +810,8 @@ try {
                     showToast('Comentário deve ter no mínimo 10 caracteres.');
                     return;
                 }
-                if (feedbackImage && feedbackImage.size > 5 * 1024 * 1024) {
-                    showToast('A imagem do feedback deve ter no máximo 5MB.');
+                if (feedbackImage && feedbackImage.size > 15 * 1024 * 1024) {
+                    showToast('A imagem do feedback deve ter no máximo 15MB.');
                     return;
                 }
 
@@ -825,7 +844,5 @@ try {
     </script>
 </body>
 </html>
-
-
 
 

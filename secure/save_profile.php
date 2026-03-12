@@ -163,6 +163,7 @@ function ensureProfessionalPublicIds(PDO $pdo): void
 function getUploadedProfilePhotoPath(array $file, string &$uploadError): ?string
 {
     $uploadError = '';
+    $maxBytes = 15 * 1024 * 1024; // 15MB
 
     if (!isset($file['error']) || $file['error'] === UPLOAD_ERR_NO_FILE) {
         return null;
@@ -173,8 +174,8 @@ function getUploadedProfilePhotoPath(array $file, string &$uploadError): ?string
         return null;
     }
 
-    if (($file['size'] ?? 0) > 5 * 1024 * 1024) {
-        $uploadError = 'A foto deve ter no máximo 5MB.';
+    if ((int) ($file['size'] ?? 0) > $maxBytes) {
+        $uploadError = 'A foto deve ter no máximo 15MB.';
         return null;
     }
 
@@ -223,6 +224,7 @@ function getUploadedProfilePhotoPath(array $file, string &$uploadError): ?string
 function saveUploadedWorkPhotos(array $files, string &$uploadError): array
 {
     $uploadError = '';
+    $maxBytes = 15 * 1024 * 1024; // 15MB por foto
 
     if (!isset($files['name']) || !is_array($files['name'])) {
         return [];
@@ -263,8 +265,8 @@ function saveUploadedWorkPhotos(array $files, string &$uploadError): array
         }
 
         $size = (int) ($files['size'][$idx] ?? 0);
-        if ($size > 5 * 1024 * 1024) {
-            $uploadError = 'Cada foto de trabalho deve ter no máximo 5MB.';
+        if ($size > $maxBytes) {
+            $uploadError = 'Cada foto de trabalho deve ter no máximo 15MB.';
             return [];
         }
 
@@ -946,7 +948,7 @@ if (preg_match('/^[a-f0-9]{32}$/', $profilePublicId)) {
                     <div>
                         <label class="block text-base md:text-[1.35rem] font-semibold mb-2">Fotos de trabalhos já realizados (máximo 6)</label>
                         <input type="file" name="fotos_trabalhos[]" multiple accept="image/jpeg,image/png,image/webp" class="block w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm md:text-[1rem]">
-                        <p class="text-sm md:text-[1rem] text-slate-400 mt-2">Envie até 6 imagens (JPG, PNG ou WEBP, máx. 5MB cada).</p>
+                        <p class="text-sm md:text-[1rem] text-slate-400 mt-2">Envie até 6 imagens (JPG, PNG ou WEBP, máx. 15MB cada).</p>
                     </div>
                     <?php if (!empty($existingWorkPhotos)): ?>
                         <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
