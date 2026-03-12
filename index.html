@@ -1,43 +1,640 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Clube dos Parceiros</title>
-    <link rel="stylesheet" href="assets/theme.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flow - Manutenção Inteligente | Encontre Profissionais de Manutenção</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
     <style>
-        .wrap { max-width: 980px; margin: 0 auto; padding: 24px; }
-        .card { background: var(--flow-surface); border: 1px solid var(--flow-border); border-radius: 18px; padding: 20px; }
-        .row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-        .btn { display: inline-block; padding: 12px 16px; border-radius: 12px; font-weight: 800; text-decoration: none; }
-        .btn-primary { background: var(--flow-primary); color: #fff; }
-        .btn-primary:hover { background: var(--flow-primary-hover); }
-        .btn-outline { border: 1px solid var(--flow-border); color: var(--flow-text); background: #fff; }
-        .muted { color: var(--flow-muted); }
-        .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        /* Global Styles & Font */
+        body { font-family: 'Inter', sans-serif; }
+        
+        /* Keyframes from React Code */
+        @keyframes blob {
+            0% { transform: translate(0px, 0px) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+            100% { transform: translate(0px, 0px) scale(1); }
+        }
+        .animate-blob { animation: blob 7s infinite; }
+        .animation-delay-2000 { animation-delay: 2s; }
+        .animation-delay-1000 { animation-delay: 1s; }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .animate-spin-slow { animation: spin 3s linear infinite; }
+        .animate-spin-very-slow { animation: spin 12s linear infinite; }
+        
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up { animation: fadeInUp 0.8s ease-out forwards; }
+        .animate-fade-in { animation: fadeInUp 0.5s ease-out forwards; }
+        
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .animate-slide-in-left { animation: slideInLeft 0.8s ease-out forwards; }
+        
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .animate-slide-in-right { animation: slideInRight 0.8s ease-out forwards; }
+        
+        .animate-ping-slow { animation: ping 3s cubic-bezier(0, 0, 0.2, 1) infinite; }
+
+        /* NOVAS CLASSES DE DELAY PARA ANIMAÇÕES EM CASCATA */
+        .animate-delay-150 { animation-delay: 150ms; }
+        .animate-delay-300 { animation-delay: 300ms; }
+        .animate-delay-450 { animation-delay: 450ms; }
+        
+        /* Custom Scrollbar for the list */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Icon SVGs (Lùcide-like) */
+        .icon-svg { stroke-width: 2; stroke: currentColor; fill: none; }
+
+        .image-container-size {
+    width: 250px; /* Tamanho base */
+    height: 250px;
+}
+
+        @media (min-width: 640px) {
+    .image-container-size {
+        width: 300px; /* Tamanho para telas maiores */
+        height: 300px;
+    }
+}
+        @media (max-width: 768px) {
+            .animate-blob,
+            .animate-float,
+            .animate-spin-slow,
+            .animate-spin-very-slow,
+            .animate-ping-slow {
+                animation-duration: 12s;
+                animation-iteration-count: 1;
+            }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .animate-blob,
+            .animate-float,
+            .animate-spin-slow,
+            .animate-spin-very-slow,
+            .animate-fade-in-up,
+            .animate-fade-in,
+            .animate-slide-in-left,
+            .animate-slide-in-right,
+            .animate-ping-slow {
+                animation: none !important;
+            }
+        }
     </style>
 </head>
-<body>
-    <header class="top-header">
-        <div class="wrap row">
-            <div class="row" style="justify-content:flex-start;">
-                <span class="brand-icon"><img src="img/logomenor.png" alt="Logo Clube dos Parceiros"></span>
-                <span class="brand-title">Clube dos Parceiros</span>
+<body class="min-h-screen text-slate-900 bg-white selection:bg-blue-200 selection:text-blue-900">
+
+    <!-- Navbar -->
+    <nav class="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-100">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2 text-blue-900 font-black text-xl">
+                <div class="bg-blue-900 text-white p-1.5 rounded-lg">
+                    <!-- Icon: Flow/Circle -->
+                       <img 
+        src="img/logomenor.png" 
+        alt="Logo Flow" 
+        class="h-10 w-auto rounded-md object-contain"
+    />
+                </div>
+                Clube dos parceiros
             </div>
-            <div class="actions">
-                <a class="btn btn-outline" href="access/checkout.html">Assinatura Profissional</a>
-                <a class="btn btn-primary" href="access/login.php">Entrar</a>
+            <div class="hidden md:flex gap-8 text-sm font-medium text-slate-600">
+                <a href="#como-funciona" class="hover:text-blue-900 transition-colors">Como funciona</a>
+                <a href="#vantagens" class="hover:text-blue-900 transition-colors">Vantagens</a>
+                <a href="#profissionais" class="hover:text-blue-900 transition-colors">Profissionais</a>
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="access/checkout.html" class="px-4 py-2 rounded-lg font-semibold transition-all duration-300 transform hover:-translate-y-1 shadow-md flex items-center justify-center gap-2 bg-white text-blue-900 border-2 border-blue-900 hover:bg-blue-50 text-sm">
+                    Cadastrar
+                </a>
+                <a href="access/login.php?mode=login" class="px-4 py-2 rounded-lg font-semibold transition-all duration-300 transform hover:-translate-y-1 shadow-md flex items-center justify-center gap-2 bg-blue-900 text-white hover:bg-blue-800 hover:shadow-lg hover:shadow-blue-900/30 text-sm">
+                    Entrar
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="pt-32 pb-20 lg:pt-48 lg:pb-32 px-6 relative overflow-hidden">
+        <!-- Background Blobs -->
+        <div class="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-50 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob -z-10 translate-x-1/2 -translate-y-1/2"></div>
+        <div class="absolute top-0 left-0 w-[400px] h-[400px] bg-indigo-50 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000 -z-10 -translate-x-1/2"></div>
+
+        <div class="container mx-auto grid lg:grid-cols-2 gap-12 items-center">
+            <div class="space-y-6 animate-slide-in-left">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-bold tracking-wide uppercase">
+                    <span class="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
+                    Disponível em todo Brasil
+                </div>
+                <h1 class="text-4xl lg:text-6xl font-extrabold leading-tight text-slate-900">
+                    O marketplace de serviços<span class="text-blue-900 relative">
+                        para encontrar  
+                        <svg class="absolute w-full h-3 -bottom-1 left-0 text-blue-200 -z-10" viewBox="0 0 100 10" preserveAspectRatio="none">
+                            <path d="M0 5 Q 50 10 100 5" stroke="currentColor" stroke-width="8" fill="none" />
+                        </svg>
+                    </span> ou oferecer profissionais perto de você
+                </h1>
+                <p class="text-lg text-slate-600 max-w-lg">
+                    Nós conectamos clientes aos melhores eletricistas, encanadores, técnicos de ar-condicionado e outros especialistas — rápido, simples e sem complicação.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 pt-4">
+                    <a href="access/painel.php" 
+   class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold 
+          transition-all duration-300 transform hover:-translate-y-1 shadow-md 
+          bg-blue-900 text-white hover:bg-blue-800 hover:shadow-lg hover:shadow-blue-900/30 
+          text-lg">
+    Falar com profissionais agora!
+    <svg class="h-5 w-5 icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 12h14"/>
+        <path d="m12 5 7 7-7 7"/>
+    </svg>
+</a>
+                     
+                    <a href="access/checkout.html" class="px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:-translate-y-1 shadow-md flex items-center justify-center gap-2 bg-white text-blue-900 border-2 border-blue-900 hover:bg-blue-50 text-lg">
+                        Sou profissional
+                    </a>
+                
+                </div>
+            </div>
+
+            <div class="relative flex justify-center animate-slide-in-right">
+                <div class="relative w-80 h-80 md:w-96 md:h-96">
+                    <!-- Animated Gear Construction -->
+
+                    <img src="img/logo.png" alt=""
+                    alt="Imagem de Exemplo"
+                    class="w-full h-full object-cover rounded-full z-20 shadow-lg"
+                    onerror="this.onerror=null;this.src='https://placehold.co/300x300/ef4444/ffffff?text=Falha+no+Carregamento'">
+                        
+                        <!-- Floating Orbital Icons -->
+                        <div class="absolute top-0 right-10 bg-white p-3 rounded-xl shadow-lg animate-float">
+                           <!-- Icon: Wrench -->
+                           <svg class="h-6 w-6 text-slate-600 icon-svg" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-2.46 2.46a2 2 0 0 1-2.83 0l-1.41-1.41a2 2 0 0 1 0-2.83l2.46-2.46a6 6 0 0 1 7.94-7.94z"/><path d="m14 2-3 3-1-1"/></svg>
+                        </div>
+                        <div class="absolute bottom-10 left-0 bg-white p-3 rounded-xl shadow-lg animate-float animation-delay-2000">
+                            <!-- Icon: Droplet (Plumbing) -->
+                            <svg class="h-6 w-6 text-blue-500 icon-svg" viewBox="0 0 24 24"><path d="M12 22c-3.1 0-5.5-2.5-5.5-5.5 0-4.3 5.5-12.5 5.5-12.5s5.5 8.2 5.5 12.5c0 3.1-2.4 5.5-5.5 5.5z"/></svg>
+                        </div>
+                        <div class="absolute bottom-0 right-20 bg-white p-3 rounded-xl shadow-lg animate-float animation-delay-1000">
+                            <!-- Icon: User -->
+                            <svg class="h-6 w-6 text-indigo-500 icon-svg" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
 
-    <main class="wrap" style="padding-top: 28px;">
-        <section class="card card-shadow">
-            <h1 style="margin: 0 0 8px 0;">Bem-vindo</h1>
-            <p class="muted" style="margin: 0;">
-                Acesse sua conta para gerenciar seu perfil ou confira o plano para profissionais.
+    <!-- Features Section -->
+    <section id="vantagens" class="py-20 bg-slate-50">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-12 animate-fade-in-up">
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Por que usar Clube dos Parceiros?</h2>
+                <p class="text-slate-600 max-w-2xl mx-auto">Entenda por que somos a escolha número 1 para serviços residenciais e comerciais.</p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Feature 1: Adicionado animate-fade-in-up e delay-150 -->
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group animate-fade-in-up animate-delay-150">
+                    <div class="bg-slate-50 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                        <!-- Icon: CheckCircle -->
+                        <svg class="h-8 w-8 text-green-500 icon-svg" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-3">Profissionais verificados</h3>
+                    <p class="text-slate-600 leading-relaxed">Todos os prestadores possuem histórico, avaliação e informações transparentes verificadas pela nossa equipe.</p>
+                </div>
+                <!-- Feature 2: Adicionado animate-fade-in-up e delay-300 -->
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group animate-fade-in-up animate-delay-300">
+                    <div class="bg-slate-50 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                        <!-- Icon: MessageCircle -->
+                        <svg class="h-8 w-8 text-blue-500 icon-svg" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-3">Contato direto</h3>
+                    <p class="text-slate-600 leading-relaxed">Fale com o profissional via WhatsApp ou e-mail sem intermediários burocráticos.</p>
+                </div>
+                <!-- Feature 3: Adicionado animate-fade-in-up e delay-450 -->
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group animate-fade-in-up animate-delay-450">
+                    <div class="bg-slate-50 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                        <!-- Icon: Search -->
+                        <svg class="h-8 w-8 text-indigo-500 icon-svg" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-3">Busca inteligente</h3>
+                    <p class="text-slate-600 leading-relaxed">Encontre por cidade, bairro ou tipo de serviço em poucos cliques com nosso sistema de geolocalização.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="como-funciona" class="py-20 bg-white relative">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-12 animate-fade-in-up">
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Como o Flow funciona?</h2>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-12 relative mt-16">
+                <!-- Connector Line (Desktop) -->
+                <div class="hidden md:block absolute top-12 left-[16%] right-[16%] h-0.5 bg-slate-200 -z-10"></div>
+
+                <!-- Step 1: Adicionado animate-fade-in-up e delay-150 -->
+                <div class="flex flex-col items-center text-center group animate-fade-in-up animate-delay-150">
+                    <div class="w-24 h-24 rounded-full bg-white border-4 border-blue-50 text-blue-900 font-black text-3xl flex items-center justify-center shadow-sm mb-6 group-hover:bg-blue-900 group-hover:text-white group-hover:border-blue-200 transition-all duration-500 relative z-10">
+                        1
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Cliente faz a busca</h3>
+                    <p class="text-slate-600 max-w-xs">O usuário informa o serviço desejado e o local. O sistema retorna profissionais próximos.</p>
+                </div>
+                <!-- Step 2: Adicionado animate-fade-in-up e delay-300 -->
+                <div class="flex flex-col items-center text-center group animate-fade-in-up animate-delay-300">
+                    <div class="w-24 h-24 rounded-full bg-white border-4 border-blue-50 text-blue-900 font-black text-3xl flex items-center justify-center shadow-sm mb-6 group-hover:bg-blue-900 group-hover:text-white group-hover:border-blue-200 transition-all duration-500 relative z-10">
+                        2
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Profissionais aparecem</h3>
+                    <p class="text-slate-600 max-w-xs">Exibimos nome, avaliação, serviços oferecidos, telefone e e-mail.</p>
+                </div>
+                <!-- Step 3: Adicionado animate-fade-in-up e delay-450 -->
+                <div class="flex flex-col items-center text-center group animate-fade-in-up animate-delay-450">
+                    <div class="w-24 h-24 rounded-full bg-white border-4 border-blue-50 text-blue-900 font-black text-3xl flex items-center justify-center shadow-sm mb-6 group-hover:bg-blue-900 group-hover:text-white group-hover:border-blue-200 transition-all duration-500 relative z-10">
+                        3
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Contato direto</h3>
+                    <p class="text-slate-600 max-w-xs">O cliente abre o WhatsApp automaticamente com mensagem pronta ou envia e-mail.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Demo Section -->
+    <section id="profissionais" class="py-20 bg-gradient-to-b from-slate-50 to-white">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-12 animate-fade-in-up">
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Demonstração do Flow</h2>
+                <p class="text-slate-600 max-w-2xl mx-auto">Teste nossa interface em tempo real. Filtre por 'Elétrica' ou locais como 'Osasco'.</p>
+            </div>
+            
+            <div class="mt-8">
+                <!-- Demo App Container (Adicionado hover:scale e transição) -->
+                <div id="demo-app-container" class="bg-slate-100 p-4 md:p-8 rounded-2xl shadow-xl border border-slate-200 max-w-6xl mx-auto overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-[1.005]">
+                    <!-- Dynamic content will be injected here -->
+                    <div class="text-center p-20 text-slate-500">Carregando demonstração...</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Footer -->
+    <section class="py-20 bg-blue-900 text-white text-center">
+        <div class="container mx-auto px-6">
+            <h2 class="text-3xl md:text-4xl font-bold mb-6">Pronto para resolver seu problema com Clube dos Parceiros?</h2>
+            <p class="text-blue-100 max-w-2xl mx-auto mb-10 text-lg">
+                Junte-se a milhares de clientes satisfeitos e encontre o profissional ideal hoje mesmo.
             </p>
-        </section>
-    </main>
+            <button class="px-8 py-4 rounded-lg font-bold transition-all duration-300 transform hover:-translate-y-1 shadow-md flex items-center justify-center gap-2 bg-white text-blue-900 border-none hover:bg-blue-50 hover:shadow-xl mx-auto text-lg">
+                Buscar Profissional Agora
+            </button>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 py-12 border-t border-slate-800">
+        <div class="container mx-auto px-6 text-center">
+            <div class="flex items-center justify-center gap-2 text-white font-bold text-xl mb-8">
+                Clube dos parceiros
+            </div>
+            <p class="mb-6 text-sm max-w-md mx-auto">
+                Plataforma de conexão entre clientes e profissionais de manutenção, com avaliações reais e contato direto.
+            </p>
+            <div class="flex justify-center gap-6 mb-8">
+                <a href="access/termos_responsabilidade.php" class="hover:text-white transition-colors">Termos de Uso</a>
+                <a href="#" class="hover:text-white transition-colors">Privacidade</a>
+                <a href="#" class="hover:text-white transition-colors">Contato</a>
+            </div>
+            <p class="text-xs">© 2025. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- Aviso de Termo de Responsabilidade -->
+    <div id="legal-modal" class="fixed inset-0 z-[100] hidden">
+        <div class="absolute inset-0 bg-slate-900/60"></div>
+        <div class="relative min-h-full flex items-center justify-center p-4">
+            <div class="w-full max-w-xl bg-white rounded-2xl shadow-2xl border border-slate-200 p-6">
+                <h3 class="text-xl font-bold text-slate-900 mb-2">Aviso de responsabilidade</h3>
+                <p class="text-slate-600 text-sm leading-relaxed mb-4">
+                    O Clube dos parceiros apenas conecta clientes e profissionais. Nao nos responsabilizamos pela execucao dos servicos contratados entre as partes.
+                </p>
+                <p class="text-sm mb-5">
+                    <a href="access/termos_responsabilidade.php" class="text-blue-700 font-semibold hover:underline">Ler Termo de Responsabilidade</a>
+                </p>
+                <div class="flex flex-col sm:flex-row gap-3 sm:justify-end">
+                    <button id="legal-later" class="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50">Agora nao</button>
+                    <button id="legal-accept" class="px-4 py-2 rounded-lg bg-blue-900 text-white font-semibold hover:bg-blue-800">Aceito</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Barra de Cookies -->
+    <div id="cookie-bar" class="fixed bottom-0 inset-x-0 z-[95] hidden">
+        <div class="mx-auto max-w-6xl m-3 rounded-xl border border-slate-200 bg-white shadow-lg p-4 flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
+            <p class="text-sm text-slate-600">
+                Usamos cookies para melhorar sua experiencia e seguranca no site.
+                <a href="access/termos_responsabilidade.php" class="text-blue-700 font-semibold hover:underline">Saiba mais</a>
+            </p>
+            <button id="cookie-accept" class="px-4 py-2 rounded-lg bg-blue-900 text-white text-sm font-semibold hover:bg-blue-800 whitespace-nowrap">Permitir cookies</button>
+        </div>
+    </div>
+
+    <!-- JavaScript for Demo App Logic -->
+    <script>
+        // --- Dados Mockados ---
+        const MOCK_PROFESSIONALS = [
+            { id: 1, name: "Rogério Silva", location: "Pinheiros — São Paulo", services: ["Elétrica", "Ar-condicionado"], rating: 4.7, since: 2019, online: true },
+            { id: 2, name: "Mariana Costa", location: "Vila Madalena — São Paulo", services: ["Hidráulica", "Gás"], rating: 4.9, since: 2018, online: false },
+            { id: 3, name: "Carlos Alberto", location: "Centro — Osasco", services: ["Refrigeração", "Ar-condicionado"], rating: 4.5, since: 2020, online: true },
+            { id: 4, name: "Lucas Pereira", location: "Moema — São Paulo", services: ["Elétrica"], rating: 4.8, since: 2021, online: true },
+            { id: 5, name: "Pedro Mendes", location: "Tatuapé — São Paulo", services: ["Pintura", "Gesso"], rating: 4.6, since: 2022, online: false }
+        ];
+
+        // --- Variáveis de Estado (Equivalente ao useState do React) ---
+        let searchTerm = "";
+        let locationTerm = "";
+        let filteredPros = MOCK_PROFESSIONALS;
+
+        /**
+         * Gera o HTML para um único card de profissional.
+         */
+        function createProfessionalCard(pro) {
+            const stars = [1, 2, 3, 4, 5].map(star => {
+                const color = star <= Math.floor(pro.rating) ? "text-yellow-500 fill-yellow-500" : "text-slate-300";
+                // Icon: Star
+                return `<svg class="h-3.5 w-3.5 ${color}" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+            }).join('');
+
+            const services = pro.services.map(s => 
+                `<span class="px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded-md font-medium">${s}</span>`
+            ).join('');
+
+            return `
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-all group animate-fade-in">
+                    <div class="flex flex-col sm:flex-row justify-between gap-4">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                                <h4 class="font-bold text-lg text-slate-800">${pro.name}</h4>
+                                ${pro.online ? '<span class="w-2 h-2 rounded-full bg-green-500" title="Online"></span>' : ''}
+                            </div>
+                            <p class="text-sm text-slate-500 flex items-center gap-1 mb-2">
+                                <!-- Icon: MapPin -->
+                                <svg class="h-3 w-3 icon-svg" viewBox="0 0 24 24"><path d="M21 10c0 7-9 11-9 11s-9-4-9-11a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                                ${pro.location}
+                            </p>
+                            <div class="flex flex-wrap gap-2 mt-3">
+                                ${services}
+                            </div>
+                            <p class="text-xs text-slate-400 mt-2">Atua desde ${pro.since}</p>
+                        </div>
+
+                        <div class="flex flex-row sm:flex-col justify-between items-end gap-2">
+                            <div class="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded-md border border-yellow-100">
+                                <div class="flex gap-0.5">${stars}</div>
+                                <span class="text-yellow-700 font-bold text-sm ml-1">${pro.rating}</span>
+                            </div>
+                            <div class="flex gap-2 mt-auto">
+                                <!-- Botão Mail -->
+                                <button class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="E-mail">
+                                    <!-- Icon: Mail -->
+                                    <svg class="h-4.5 w-4.5 icon-svg" viewBox="0 0 24 24"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                                </button>
+                                <!-- Botão MessageCircle (Chat) -->
+                                <button class="p-2 text-slate-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors" title="Chat">
+                                    <!-- Icon: MessageCircle -->
+                                    <svg class="h-4.5 w-4.5 icon-svg" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+                                </button>
+                                <!-- Botão Contatar (Demo Button Style) -->
+                                <button class="bg-blue-900 text-white hover:bg-blue-800 text-sm py-2 px-4 rounded-lg font-semibold transition-all duration-300 transform hover:-translate-y-1 shadow-md">
+                                    Contatar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        /**
+         * Função de filtragem de dados.
+         */
+        function filterProfessionals() {
+            filteredPros = MOCK_PROFESSIONALS.filter(pro => {
+                const serviceLower = searchTerm.toLowerCase();
+                const locationLower = locationTerm.toLowerCase();
+
+                const matchesService = pro.services.some(s => s.toLowerCase().includes(serviceLower)) ||
+                                       pro.name.toLowerCase().includes(serviceLower);
+
+                const matchesLocation = pro.location.toLowerCase().includes(locationLower);
+
+                return matchesService && matchesLocation;
+            });
+        }
+
+        /**
+         * Renderiza a lista de profissionais na UI.
+         */
+        function renderProfessionalList() {
+            const listContainer = document.getElementById('professional-list-container');
+            const resultCountSpan = document.getElementById('result-count');
+
+            if (!listContainer || !resultCountSpan) return;
+
+            resultCountSpan.textContent = `Mostrando ${filteredPros.length} resultados`;
+
+            if (filteredPros.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-64 text-slate-400">
+                        <!-- Icon: User (Large, opaque) -->
+                        <svg class="h-12 w-12 mb-2 opacity-20 icon-svg" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        <p>Nenhum profissional encontrado com esses filtros.</p>
+                    </div>
+                `;
+            } else {
+                listContainer.innerHTML = filteredPros.map(createProfessionalCard).join('');
+            }
+        }
+
+        /**
+         * Inicializa o componente DemoApp, registrando listeners e renderizando o layout inicial.
+         */
+        function renderDemoApp() {
+            const container = document.getElementById('demo-app-container');
+            if (!container) return;
+
+            container.innerHTML = `
+                <div class="flex flex-col lg:flex-row gap-6 h-full lg:h-[600px]">
+                    
+                    <!-- Sidebar Filtros -->
+                    <div class="w-full lg:w-1/3 bg-white p-6 rounded-xl shadow-sm flex flex-col gap-4">
+                        <h3 class="font-bold text-lg text-slate-800 mb-2">Buscar Profissional</h3>
+                        
+                        <div class="space-y-1">
+                            <label class="text-xs font-medium text-slate-500">O que precisa?</label>
+                            <div class="relative">
+                                <!-- Icon: Search -->
+                                <svg class="absolute left-3 top-3 h-4 w-4 text-slate-400 icon-svg" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                                <input type="text" id="search-term-input"
+                                    placeholder="ex: elétrica, ar-condicionado..." 
+                                    class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                                    value="${searchTerm}"
+                                />
+                            </div>
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="text-xs font-medium text-slate-500">Local (cidade / bairro)</label>
+                            <div class="relative">
+                                <!-- Icon: MapPin -->
+                                <svg class="absolute left-3 top-3 h-4 w-4 text-slate-400 icon-svg" viewBox="0 0 24 24"><path d="M21 10c0 7-9 11-9 11s-9-4-9-11a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                                <input type="text" id="location-term-input"
+                                    placeholder="Ex: São Paulo, Pinheiros" 
+                                    class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                                    value="${locationTerm}"
+                                />
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-4 border-t border-slate-100">
+                            <button id="search-button" class="px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:-translate-y-1 shadow-md flex items-center justify-center gap-2 bg-blue-900 text-white hover:bg-blue-800 hover:shadow-lg hover:shadow-blue-900/30 w-full mb-2">
+                                Buscar
+                            </button>
+                            <button id="clear-button" class="px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:-translate-y-1 shadow-md flex items-center justify-center gap-2 border border-slate-300 text-slate-600 hover:border-blue-500 hover:text-blue-600 bg-white w-full">
+                                Limpar
+                            </button>
+                        </div>
+
+                        <div class="mt-auto p-4 bg-blue-50 rounded-lg text-xs text-blue-800">
+                            <p><strong>Dica:</strong> Tente digitar "Hidráulica" ou "Osasco" para ver a filtragem em tempo real.</p>
+                        </div>
+                    </div>
+
+                    <!-- Lista de Resultados -->
+                    <div class="w-full lg:w-2/3 flex flex-col gap-4 overflow-y-auto pr-2 custom-scrollbar">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="font-bold text-slate-800">Profissionais encontrados</h3>
+                            <span id="result-count" class="text-sm text-slate-500"></span>
+                        </div>
+                        <div id="professional-list-container" class="flex flex-col gap-4">
+                            <!-- Cards will be injected here -->
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // --- Event Listeners and Initial Render Setup ---
+            const searchInput = document.getElementById('search-term-input');
+            const locationInput = document.getElementById('location-term-input');
+            const searchButton = document.getElementById('search-button');
+            const clearButton = document.getElementById('clear-button');
+
+            const updateAndRender = () => {
+                filterProfessionals();
+                renderProfessionalList();
+            };
+
+            searchInput.addEventListener('input', (e) => {
+                searchTerm = e.target.value;
+                updateAndRender();
+            });
+
+            locationInput.addEventListener('input', (e) => {
+                locationTerm = e.target.value;
+                updateAndRender();
+            });
+
+            searchButton.addEventListener('click', updateAndRender); // Re-run search explicitly
+
+            clearButton.addEventListener('click', () => {
+                searchTerm = "";
+                locationTerm = "";
+                searchInput.value = "";
+                locationInput.value = "";
+                updateAndRender();
+            });
+            
+            // Initial render
+            updateAndRender();
+        }
+
+        // Executar a inicialização da demonstração ao carregar a janela
+        function initLegalNotice() {
+            const legalModal = document.getElementById('legal-modal');
+            const legalAccept = document.getElementById('legal-accept');
+            const legalLater = document.getElementById('legal-later');
+            const termsStorageKey = 'flow_terms_accepted_v1';
+
+            if (!legalModal || !legalAccept || !legalLater) return;
+
+            if (!localStorage.getItem(termsStorageKey)) {
+                legalModal.classList.remove('hidden');
+            }
+
+            legalAccept.addEventListener('click', () => {
+                localStorage.setItem(termsStorageKey, '1');
+                legalModal.classList.add('hidden');
+            });
+
+            legalLater.addEventListener('click', () => {
+                legalModal.classList.add('hidden');
+            });
+        }
+
+        function initCookieBar() {
+            const cookieBar = document.getElementById('cookie-bar');
+            const cookieAccept = document.getElementById('cookie-accept');
+            const cookieStorageKey = 'flow_cookie_consent_v1';
+
+            if (!cookieBar || !cookieAccept) return;
+
+            if (!localStorage.getItem(cookieStorageKey)) {
+                cookieBar.classList.remove('hidden');
+            }
+
+            cookieAccept.addEventListener('click', () => {
+                localStorage.setItem(cookieStorageKey, '1');
+                cookieBar.classList.add('hidden');
+            });
+        }
+
+        window.addEventListener('load', () => {
+            renderDemoApp();
+            initLegalNotice();
+            initCookieBar();
+        });
+    </script>
 </body>
 </html>
+
