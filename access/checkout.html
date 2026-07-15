@@ -20,12 +20,13 @@
     <meta name="twitter:description" content="Crie seu perfil profissional e comece a receber clientes.">
     <meta name="twitter:image" content="https://clubedosparceiros.cloud/img/logo.png">
 
-    <meta name="theme-color" content="#1e3a8a">
+    <meta name="theme-color" content="#1A3D63">
     <title>Assinatura para Profissionais - Clube dos Parceiros</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="icon" href="/img/logomenor.png" type="image/png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../assets/theme.css">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/theme.css?v=20260513">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- AOS Animate on Scroll -->
@@ -40,13 +41,13 @@
         }
         /* Mantém o Tailwind no controle dos tamanhos responsivos */
         .bg-professional-blue {
-            background-color: #1E3A8A;
+            background-color: var(--flow-primary);
         }
         .text-professional-blue {
-            color: #1E3A8A;
+            color: var(--flow-primary);
         }
         .border-professional-blue {
-            border-color: #1E3A8A;
+            border-color: var(--flow-primary);
         }
         .card-shadow {
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
@@ -58,12 +59,65 @@
         .group:hover .check-animate {
             transform: scale(1.2);
         }
+
+        /* Barra do topo (nav) com azul mais escuro */
+        /* Cores e tipografia padronizadas via ../assets/theme.css */
     </style>
 </head>
 <body class="bg-slate-50 text-gray-900">
 
+    <nav class="fixed top-0 w-full z-50 bg-blue-900/95 text-white backdrop-blur-md border-b border-blue-800/60">
+        <div class="container mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between gap-3">
+            <a href="../index.html" class="shrink-0 flex items-center gap-3 text-white font-black text-base sm:text-xl min-w-0">
+                <img src="../img/logomenor.png" alt="Logo Clube dos Parceiros" class="h-14 sm:h-16 w-auto object-contain">
+                <span class="truncate text-sm sm:text-xl max-w-[170px] sm:max-w-none">Clube dos Parceiros</span>
+            </a>
+
+            <div class="hidden md:flex flex-1 items-center justify-center gap-6 lg:gap-8 text-sm font-medium text-white/85">
+                <a href="../index.html#como-funciona" class="hover:text-white transition-colors">Como funciona</a>
+                <a href="../index.html#vantagens" class="hover:text-white transition-colors">Vantagens</a>
+                <a href="../index.html#videos" class="hover:text-white transition-colors">Vídeos</a>
+                <a href="painel.php" class="hover:text-white transition-colors">Profissionais</a>
+            </div>
+
+            <div class="hidden md:flex shrink-0 flex-wrap items-center justify-end gap-2 sm:gap-3">
+                <a href="checkout.html" class="flow-btn px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-semibold transition-all duration-300 transform hover:-translate-y-1 shadow-md flex items-center justify-center gap-2 border-2 text-xs sm:text-sm whitespace-nowrap">
+                    Cadastrar
+                </a>
+                <a href="login.php?mode=login&next=%2Faccess%2Fcheckout.html" class="flow-btn px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-semibold transition-all duration-300 transform hover:-translate-y-1 shadow-md flex items-center justify-center gap-2 border-2 text-xs sm:text-sm whitespace-nowrap">
+                    Entrar
+                </a>
+            </div>
+
+            <button id="nav-toggle" type="button" class="hamburger md:hidden text-white/90 hover:text-white transition" aria-label="Abrir menu" aria-controls="mobile-menu" aria-expanded="false">
+                <span class="hamburger-lines" aria-hidden="true">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </span>
+            </button>
+        </div>
+
+        <div id="mobile-menu" class="md:hidden hidden px-4 sm:px-6 pb-4 pt-2 bg-blue-900 border-t border-blue-800/60">
+            <div class="flex flex-col gap-1 text-sm font-semibold">
+                <a href="../index.html#como-funciona" class="px-3 py-2 rounded-lg hover:bg-white/10 transition">Como funciona</a>
+                <a href="../index.html#vantagens" class="px-3 py-2 rounded-lg hover:bg-white/10 transition">Vantagens</a>
+                <a href="../index.html#videos" class="px-3 py-2 rounded-lg hover:bg-white/10 transition">Vídeos</a>
+                <a href="painel.php" class="px-3 py-2 rounded-lg hover:bg-white/10 transition">Profissionais</a>
+            </div>
+            <div class="mt-3 grid grid-cols-2 gap-2">
+                <a href="checkout.html" class="flow-btn px-3 py-2 rounded-lg font-bold border-2 transition text-center">
+                    Cadastrar
+                </a>
+                <a href="login.php?mode=login&next=%2Faccess%2Fcheckout.html" class="flow-btn px-3 py-2 rounded-lg font-bold border-2 transition text-center">
+                    Entrar
+                </a>
+            </div>
+        </div>
+    </nav>
+
     <!-- Seção de Hero / Assinatura -->
-    <section class="py-12 sm:py-16 px-4 sm:px-6 lg:px-8">
+    <section class="pt-28 pb-12 sm:pt-32 sm:pb-16 px-4 sm:px-6 lg:px-8">
         <div class="max-w-4xl mx-auto text-center mb-12" data-aos="fade-up">
             <!-- Badge -->
             <span class="inline-block px-3 py-1 mb-4 text-xs font-bold tracking-widest text-professional-blue uppercase bg-blue-100 rounded-full">
@@ -129,7 +183,7 @@
 
                 <!-- Botão CTA -->
                 <div class="text-center">
-                    <button id="startCheckoutBtn" class="block w-full bg-professional-blue hover:bg-blue-800 text-white font-bold py-4 px-6 rounded-2xl transition-all transform hover:scale-[1.05] active:scale-95 shadow-lg shadow-blue-200">
+                    <button id="startCheckoutBtn" class="flow-btn block w-full border-2 font-bold py-4 px-6 rounded-2xl transition-all transform hover:scale-[1.05] active:scale-95 shadow-lg shadow-blue-200">
                         Assinar agora
                     </button>
                     <p class="mt-4 text-xs text-gray-400">
@@ -214,10 +268,6 @@
 
             try {
                 const res = await fetch('create_checkout_session.php', { method: 'POST' });
-                if (res.status === 401) {
-                    window.location.href = 'login.php?mode=login&next=%2Faccess%2Fcheckout.html';
-                    return;
-                }
                 const data = await res.json().catch(() => ({}));
                 if (!res.ok || !data.ok || !data.url) {
                     throw new Error(data.message || 'Não foi possível iniciar o checkout.');
@@ -240,6 +290,41 @@
                 startCheckout();
             });
         }
+
+        (function initMobileNav() {
+            const toggle = document.getElementById('nav-toggle');
+            const menu = document.getElementById('mobile-menu');
+            if (!toggle || !menu) return;
+
+            const closeMenu = () => {
+                menu.classList.add('hidden');
+                toggle.setAttribute('aria-expanded', 'false');
+                toggle.classList.remove('is-open');
+            };
+
+            toggle.addEventListener('click', () => {
+                const isOpen = !menu.classList.contains('hidden');
+                if (isOpen) closeMenu();
+                else {
+                    menu.classList.remove('hidden');
+                    toggle.setAttribute('aria-expanded', 'true');
+                    toggle.classList.add('is-open');
+                }
+            });
+
+            menu.addEventListener('click', (event) => {
+                const target = event.target;
+                if (target && target.closest && target.closest('a')) closeMenu();
+            });
+
+            window.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') closeMenu();
+            });
+
+            window.addEventListener('resize', () => {
+                if (window.matchMedia('(min-width: 768px)').matches) closeMenu();
+            });
+        })();
 
         // Inicializa as animações AOS
         AOS.init({

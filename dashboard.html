@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex,nofollow">
+    <title>Painel de Vídeos</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/theme.css?v=20260513">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-900">
+
+    <!-- LOGIN SCREEN (ALTERAÇÃO: adiciona login simples e bloqueia acesso) -->
+    <div id="login-screen" class="min-h-screen flex items-center justify-center px-6 py-10">
+        <div class="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-200 p-8">
+            <h1 class="text-2xl font-black text-slate-900 text-center">Painel de vídeos</h1>
+            <p class="text-slate-600 text-center mt-2">Entre para administrar seus vídeos.</p>
+
+            <form id="login-form" class="mt-8 space-y-4">
+                <div>
+                    <label for="login-user" class="block text-sm font-semibold text-slate-700 mb-1">Usuário</label>
+                    <input id="login-user" name="login-user" type="text" autocomplete="username" required
+                           class="w-full rounded-xl border border-slate-300 px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-300"
+                           placeholder="Digite seu usuário">
+                </div>
+
+                <div>
+                    <label for="login-pass" class="block text-sm font-semibold text-slate-700 mb-1">Senha</label>
+                    <input id="login-pass" name="login-pass" type="password" autocomplete="current-password" required
+                           class="w-full rounded-xl border border-slate-300 px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-300"
+                           placeholder="Digite sua senha">
+                </div>
+
+                <p id="login-error" class="hidden text-sm font-semibold text-red-600">Usuário ou senha incorretos</p>
+
+                <button type="submit"
+                        class="w-full px-5 py-4 rounded-xl bg-blue-900 text-white text-lg font-black hover:bg-blue-800 shadow-lg shadow-blue-900/20">
+                    Entrar
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- APP SCREEN -->
+    <div id="app-screen" class="hidden">
+        <!-- Topbar -->
+        <header class="sticky top-0 z-50 bg-blue-900/95 text-white backdrop-blur-md border-b border-blue-800/60">
+            <div class="container mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3 min-w-0">
+                    <img src="img/logomenor.png" alt="Logo Clube dos Parceiros" class="h-14 sm:h-16 w-auto object-contain">
+                    <div class="min-w-0">
+                        <h1 class="text-lg sm:text-2xl font-black text-white leading-tight truncate">Painel de vídeos</h1>
+                        <p class="text-xs sm:text-sm text-white/80 leading-snug">Adicione, edite ou exclua vídeos. Eles aparecem automaticamente no site.</p>
+                    </div>
+                </div>
+
+                <div class="hidden md:flex flex-row gap-2 items-center">
+                    <a href="index.html#videos" class="flow-btn flow-btn-light px-4 py-2.5 rounded-xl font-bold border-2 transition-all duration-300 transform hover:-translate-y-1 shadow-md text-center">
+                        Ver site
+                    </a>
+                    <button id="logout-button" class="flow-btn flow-btn-light px-4 py-2.5 rounded-xl font-bold border-2 transition-all duration-300 transform hover:-translate-y-1 shadow-md">
+                        Sair
+                    </button>
+                </div>
+
+                <button id="nav-toggle" type="button" class="hamburger md:hidden text-white/90 hover:text-white transition" aria-label="Abrir menu" aria-controls="mobile-menu" aria-expanded="false">
+                    <span class="hamburger-lines" aria-hidden="true">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </span>
+                </button>
+            </div>
+
+            <div id="mobile-menu" class="md:hidden hidden px-4 sm:px-6 pb-4 pt-2 bg-blue-900 border-t border-blue-800/60">
+                <div class="grid grid-cols-1 gap-2">
+                    <a href="index.html#videos" class="flow-btn flow-btn-light px-3 py-2 rounded-lg font-bold border-2 transition text-center">
+                        Ver site
+                    </a>
+                    <button id="logout-button-mobile" type="button" class="flow-btn flow-btn-light px-3 py-2 rounded-lg font-bold border-2 transition text-center">
+                        Sair
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="container mx-auto px-6 py-8 space-y-8">
+            <!-- ESTATÍSTICAS -->
+            <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                        <h2 class="text-lg md:text-xl font-black text-slate-900">Estatísticas</h2>
+                        <p class="text-slate-600 mt-1">Resumo do cadastro na plataforma.</p>
+                    </div>
+                    <p id="stats-updated" class="text-xs font-semibold text-slate-500"></p>
+                </div>
+
+                <div class="mt-6 grid sm:grid-cols-2 gap-4">
+                    <div class="rounded-2xl border border-slate-200 p-5 bg-slate-50">
+                        <p class="text-xs font-black tracking-wide uppercase text-slate-600">Pessoas inscritas</p>
+                        <p id="stats-users" class="mt-2 text-3xl font-black text-slate-900">—</p>
+                        <p class="mt-1 text-sm text-slate-600">Total de contas criadas (tabela <code class="font-semibold">usuarios</code>).</p>
+                    </div>
+                    <div class="rounded-2xl border border-slate-200 p-5 bg-slate-50">
+                        <p class="text-xs font-black tracking-wide uppercase text-slate-600">Perfis profissionais</p>
+                        <p id="stats-professionals" class="mt-2 text-3xl font-black text-slate-900">—</p>
+                        <p class="mt-1 text-sm text-slate-600">Total de perfis publicados (tabela <code class="font-semibold">profissionais</code>).</p>
+                    </div>
+                </div>
+
+                <p id="stats-error" class="hidden mt-4 text-sm font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3"></p>
+            </section>
+            <!-- FORM (ALTERAÇÃO: formulário em passos, com preview automático) -->
+            <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8">
+                <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                    <div>
+                        <h2 id="form-heading" class="text-lg md:text-xl font-black text-slate-900">Novo vídeo</h2>
+                        <p class="text-slate-600 mt-1">Siga os passos abaixo. É rápido.</p>
+                    </div>
+                    <span id="edit-badge" class="hidden text-xs font-black px-3 py-1.5 rounded-full bg-amber-100 text-amber-900 border border-amber-200 self-start">EDITANDO</span>
+                </div>
+
+                <form id="video-form" class="mt-6 space-y-6">
+                    <!-- Passo 1 -->
+                    <div class="rounded-2xl border border-slate-200 p-5">
+                        <p class="text-sm font-black text-slate-900 mb-2">Passo 1</p>
+                        <label for="link" class="block text-base font-bold text-slate-800 mb-2">Link do vídeo</label>
+                        <input id="link" name="link" type="url" required
+                               class="w-full rounded-xl border border-slate-300 px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-300"
+                               placeholder="Cole o link do YouTube aqui">
+                        <p id="link-error" class="hidden mt-2 text-sm font-semibold text-red-600">Não consegui entender esse link. Cole um link do YouTube e tente novamente.</p>
+
+                        <div id="preview-wrap" class="hidden mt-4">
+                            <div class="relative w-full pt-[56.25%] bg-slate-200 rounded-xl overflow-hidden border border-slate-200">
+                                <div id="preview-media" class="absolute inset-0"></div>
+                            </div>
+                            <p class="mt-2 text-sm text-slate-600">Prévia do vídeo</p>
+                        </div>
+                    </div>
+
+                    <!-- Passo 2 -->
+                    <div id="step-2" class="hidden rounded-2xl border border-slate-200 p-5">
+                        <p class="text-sm font-black text-slate-900 mb-2">Passo 2</p>
+                        <label for="title" class="block text-base font-bold text-slate-800 mb-2">Nome do vídeo</label>
+                        <input id="title" name="title" type="text" required
+                               class="w-full rounded-xl border border-slate-300 px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-300"
+                               placeholder="Ex: Vídeo explicando o serviço">
+                    </div>
+
+                    <!-- Passo 3 -->
+                    <div id="step-3" class="hidden rounded-2xl border border-slate-200 p-5">
+                        <p class="text-sm font-black text-slate-900 mb-2">Passo 3</p>
+                        <label for="description" class="block text-base font-bold text-slate-800 mb-2">Descrição (opcional)</label>
+                        <textarea id="description" name="description" rows="4"
+                                  class="w-full rounded-xl border border-slate-300 px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-300"
+                                  placeholder="Se quiser, escreva uma descrição curta..."></textarea>
+                    </div>
+
+                    <div class="flex flex-col md:flex-row gap-3 md:items-center">
+                        <button id="save-button" type="submit"
+                                class="w-full md:w-auto px-6 py-4 rounded-xl bg-blue-900 text-white text-lg font-black hover:bg-blue-800 shadow-lg shadow-blue-900/20 disabled:opacity-50 disabled:cursor-not-allowed">
+                            Salvar vídeo
+                        </button>
+
+                        <button id="cancel-edit-button" type="button"
+                                class="hidden w-full md:w-auto px-6 py-4 rounded-xl border border-slate-300 bg-white text-slate-800 text-lg font-black hover:bg-slate-50">
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- LISTA -->
+            <section>
+                <div class="flex items-end justify-between gap-4 mb-4">
+                    <div>
+                        <h2 class="text-lg md:text-xl font-black text-slate-900">Seus vídeos</h2>
+                        <p id="count" class="text-sm text-slate-600"></p>
+                    </div>
+                </div>
+
+                <div id="empty-state" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 p-10 text-center">
+                    <h3 class="text-xl font-black text-slate-900 mb-2">Você ainda não adicionou nenhum vídeo</h3>
+                    <p class="text-slate-600">Clique em <strong>Novo vídeo</strong> para começar.</p>
+                </div>
+
+                <div id="videos-list" class="grid md:grid-cols-2 gap-6">
+                    <!-- Cards renderizados via JavaScript -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="pointer-events-none fixed bottom-4 right-4 z-[100] hidden">
+        <div id="toast-inner" class="pointer-events-auto max-w-sm rounded-xl border border-slate-200 bg-white shadow-xl px-4 py-3">
+            <p id="toast-text" class="text-sm font-semibold text-slate-900"></p>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * Refatoração focada em usabilidade (sem remover funcionalidades):
+         * - (ALTERAÇÃO) Login simples: usuário/senha admin/admin, bloqueia acesso sem login
+         * - (ALTERAÇÃO) Formulário em 3 passos e com prévia automática do vídeo
+         * - (ALTERAÇÃO) Textos mais simples (sem termos técnicos)
+         * - Mantém a MESMA estrutura e chave de dados para não quebrar a integração com `index.html`
+         */
+
+        const VIDEO_STORAGE_KEY = 'flow_videos_v1'; // integração com index.html (não mudar)
+        const AUTH_STORAGE_KEY = 'flow_videos_dashboard_auth_v1';
+
+        // ---------------------------
+        // Estatísticas (DB)
+        // ---------------------------
+
+        async function loadDashboardStats() {
+            const usersEl = document.getElementById('stats-users');
+            const prosEl = document.getElementById('stats-professionals');
+            const updatedEl = document.getElementById('stats-updated');
+            const errorEl = document.getElementById('stats-error');
+            if (!usersEl || !prosEl) return;
+
+            const setError = (msg) => {
+                if (!errorEl) return;
+                if (!msg) {
+                    errorEl.classList.add('hidden');
+                    errorEl.textContent = '';
+                    return;
+                }
+                errorEl.textContent = msg;
+                errorEl.classList.remove('hidden');
+            };
+
+            try {
+                setError('');
+                usersEl.textContent = '...';
+                prosEl.textContent = '...';
+                if (updatedEl) updatedEl.textContent = '';
+
+                const res = await fetch('access/dashboard_stats.php', { cache: 'no-store' });
+                const data = await res.json().catch(() => ({}));
+
+                if (!data || !data.ok) {
+                    usersEl.textContent = '—';
+                    prosEl.textContent = '—';
+                    setError((data && data.message) ? data.message : 'Não foi possível carregar as estatísticas.');
+                    return;
+                }
+
+                const fmt = (v) => (typeof v === 'number' ? v.toLocaleString('pt-BR') : '—');
+                usersEl.textContent = fmt(data.users);
+                prosEl.textContent = fmt(data.professionals);
+
+                if (updatedEl && data.updated_at) {
+                    const d = new Date(data.updated_at);
+                    updatedEl.textContent = isNaN(d.getTime())
+                        ? ''
+                        : `Atualizado: ${d.toLocaleString('pt-BR')}`;
+                }
+            } catch (e) {
+                usersEl.textContent = '—';
+                prosEl.textContent = '—';
+                setError('Erro ao carregar as estatísticas.');
+            }
+        }
+
+        // ---------------------------
+        // Utilitários: segurança/validação
+        // ---------------------------
+
+        function safeParseJSON(value, fallback) {
+            try {
+                const parsed = JSON.parse(value);
+                return parsed ?? fallback;
+            } catch {
+                return fallback;
+            }
+        }
+
+        function sanitizeText(input, maxLen) {
+            const text = (input ?? '').toString()
+                .replace(/[\u0000-\u001F\u007F]/g, '') // remove caracteres de controle
+                .trim();
+            return text.slice(0, maxLen);
+        }
+
+        function normalizeYouTubeToEmbedUrl(input) {
+            // Aceita diferentes formatos de link do YouTube e converte para um formato padrão
+            if (!input || typeof input !== 'string') return null;
+            const raw = input.trim();
+            if (!raw) return null;
+            if (/^\s*javascript:/i.test(raw)) return null;
+
+            let url;
+            try {
+                url = new URL(raw, window.location.origin);
+            } catch {
+                return null;
+            }
+
+            const host = url.hostname.replace(/^www\./, '').toLowerCase();
+            let videoId = null;
+
+            if (host === 'youtu.be') {
+                videoId = url.pathname.split('/').filter(Boolean)[0] || null;
+            } else if (host === 'youtube.com' || host === 'm.youtube.com') {
+                if (url.pathname.startsWith('/watch')) {
+                    videoId = url.searchParams.get('v');
+                } else if (url.pathname.startsWith('/embed/')) {
+                    videoId = url.pathname.split('/').filter(Boolean)[1] || null;
+                }
+            } else if (host === 'youtube-nocookie.com') {
+                if (url.pathname.startsWith('/embed/')) {
+                    videoId = url.pathname.split('/').filter(Boolean)[1] || null;
+                }
+            }
+
+            if (!videoId || !/^[a-zA-Z0-9_-]{6,}$/.test(videoId)) return null;
+            return `https://www.youtube-nocookie.com/embed/${videoId}`;
+        }
+
+        function normalizeMp4Url(input) {
+            if (!input || typeof input !== 'string') return null;
+            const raw = input.trim();
+            if (!raw) return null;
+            if (/^\s*javascript:/i.test(raw)) return null;
+
+            // Permite caminho relativo (ideal para /uploads)
+            if (raw.startsWith('/') || raw.startsWith('./') || raw.startsWith('../')) {
+                if (!/\.mp4(\?.*)?$/i.test(raw)) return null;
+                return raw;
+            }
+
+            let url;
+            try {
+                url = new URL(raw);
+            } catch {
+                return null;
+            }
+
+            if (!/^https?:$/i.test(url.protocol)) return null;
+            if (!/\.mp4(\?.*)?$/i.test(url.pathname)) return null;
+            return url.toString();
+        }
+
+        function normalizeVideoLink(input) {
+            // Decide entre YouTube ou MP4 e normaliza a URL final (mantém suporte sem expor termos na UI)
+            const trimmed = (input ?? '').toString().trim();
+            if (!trimmed) return null;
+
+            const youtube = /youtube|youtu\.be/i.test(trimmed);
+            if (youtube) {
+                const src = normalizeYouTubeToEmbedUrl(trimmed);
+                if (!src) return null;
+                return { kind: 'youtube', src };
+            }
+
+            const mp4 = normalizeMp4Url(trimmed);
+            if (!mp4) return null;
+            return { kind: 'mp4', src: mp4 };
+        }
+
+        function makeId() {
+            if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+            return `vid_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+        }
+
+        function coerceVideosArray(raw) {
+            // Compatibilidade com formatos antigos: aceita {url} ou {src, kind}
+            if (!Array.isArray(raw)) return [];
+            const out = [];
+
+            for (const item of raw) {
+                if (!item || typeof item !== 'object') continue;
+                const title = sanitizeText(item.title, 80);
+                const description = sanitizeText(item.description, 200);
+                const link = (item.src ?? item.url ?? '').toString().trim();
+                const normalized = normalizeVideoLink(link);
+                if (!title || !normalized) continue;
+
+                out.push({
+                    id: (item.id ?? makeId()).toString(),
+                    title,
+                    description,
+                    kind: normalized.kind,
+                    src: normalized.src,
+                    updatedAt: new Date().toISOString(),
+                });
+            }
+
+            return out;
+        }
+
+        // ---------------------------
+        // Persistência
+        // ---------------------------
+
+        function loadVideos() {
+            const raw = safeParseJSON(localStorage.getItem(VIDEO_STORAGE_KEY), []);
+            return coerceVideosArray(raw);
+        }
+
+        function saveVideos(videos) {
+            localStorage.setItem(VIDEO_STORAGE_KEY, JSON.stringify(videos));
+        }
+
+        // ---------------------------
+        // UI: toast/feedback
+        // ---------------------------
+
+        let toastTimer = null;
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const text = document.getElementById('toast-text');
+            if (!toast || !text) return;
+
+            text.textContent = message;
+            toast.classList.remove('hidden');
+            toast.classList.add('block');
+
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toast.classList.add('hidden');
+                toast.classList.remove('block');
+            }, 2500);
+        }
+
+        // ---------------------------
+        // UI: renderização
+        // ---------------------------
+
+        function renderList(videos) {
+            const list = document.getElementById('videos-list');
+            const empty = document.getElementById('empty-state');
+            const count = document.getElementById('count');
+
+            if (!list || !empty || !count) return;
+
+            list.innerHTML = '';
+            count.textContent = `${videos.length} vídeo(s)`;
+
+            if (!videos.length) {
+                empty.classList.remove('hidden');
+                return;
+            }
+
+            empty.classList.add('hidden');
+
+            for (const video of videos) {
+                const card = document.createElement('div');
+                // (ALTERAÇÃO) Card com visual mais "limpo" e botões maiores
+                card.className = 'bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-shadow';
+
+                const mediaWrap = document.createElement('div');
+                mediaWrap.className = 'relative w-full pt-[56.25%] bg-slate-200';
+
+                if (video.kind === 'youtube') {
+                    const iframe = document.createElement('iframe');
+                    iframe.className = 'absolute inset-0 w-full h-full';
+                    iframe.src = video.src;
+                    iframe.title = video.title;
+                    iframe.loading = 'lazy';
+                    iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+                    iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+                    iframe.allowFullscreen = true;
+                    mediaWrap.appendChild(iframe);
+                } else {
+                    const el = document.createElement('video');
+                    el.className = 'absolute inset-0 w-full h-full object-cover';
+                    el.src = video.src;
+                    el.controls = true;
+                    el.preload = 'metadata';
+                    el.playsInline = true;
+                    mediaWrap.appendChild(el);
+                }
+
+                const body = document.createElement('div');
+                body.className = 'p-5 md:p-6';
+
+                const title = document.createElement('h3');
+                title.className = 'text-base font-bold text-slate-900';
+                title.textContent = video.title;
+
+                const desc = document.createElement('p');
+                desc.className = 'mt-2 text-sm text-slate-600 leading-relaxed';
+                desc.textContent = video.description || '';
+
+                const actions = document.createElement('div');
+                actions.className = 'mt-5 grid grid-cols-2 gap-3';
+
+                const editBtn = document.createElement('button');
+                editBtn.type = 'button';
+                editBtn.className = 'px-4 py-3 rounded-xl border border-slate-300 bg-white text-slate-800 font-black hover:bg-slate-50 text-base';
+                editBtn.textContent = 'Editar';
+                editBtn.addEventListener('click', () => startEdit(video.id));
+
+                const delBtn = document.createElement('button');
+                delBtn.type = 'button';
+                delBtn.className = 'px-4 py-3 rounded-xl bg-red-600 text-white font-black hover:bg-red-500 text-base';
+                delBtn.textContent = 'Excluir';
+                delBtn.addEventListener('click', () => deleteVideo(video.id));
+
+                actions.appendChild(editBtn);
+                actions.appendChild(delBtn);
+
+                body.appendChild(title);
+                body.appendChild(desc);
+                body.appendChild(actions);
+
+                card.appendChild(mediaWrap);
+                card.appendChild(body);
+                list.appendChild(card);
+            }
+        }
+
+        // ---------------------------
+        // CRUD: estado e handlers
+        // ---------------------------
+
+        let videos = [];
+        let editingId = null;
+
+        function syncAndRender() {
+            saveVideos(videos);
+            renderList(videos);
+        }
+
+        function resetForm() {
+            const form = document.getElementById('video-form');
+            const heading = document.getElementById('form-heading');
+            const badge = document.getElementById('edit-badge');
+            const cancel = document.getElementById('cancel-edit-button');
+            const step2 = document.getElementById('step-2');
+            const step3 = document.getElementById('step-3');
+            const linkError = document.getElementById('link-error');
+            const previewWrap = document.getElementById('preview-wrap');
+            const previewMedia = document.getElementById('preview-media');
+            const saveBtn = document.getElementById('save-button');
+            if (!form || !heading || !badge || !cancel) return;
+
+            form.reset();
+            editingId = null;
+            currentNormalized = null;
+
+            heading.textContent = 'Novo vídeo';
+            badge.classList.add('hidden');
+            cancel.classList.add('hidden');
+
+            // (ALTERAÇÃO) Volta para o Passo 1 e limpa preview/mensagens
+            step2?.classList.add('hidden');
+            step3?.classList.add('hidden');
+            linkError?.classList.add('hidden');
+            previewWrap?.classList.add('hidden');
+            if (previewMedia) previewMedia.innerHTML = '';
+            saveBtn?.setAttribute('disabled', 'disabled');
+        }
+
+        function focusForm() {
+            const link = document.getElementById('link');
+            if (link) link.focus();
+        }
+
+        function startEdit(id) {
+            const form = document.getElementById('video-form');
+            const heading = document.getElementById('form-heading');
+            const badge = document.getElementById('edit-badge');
+            const cancel = document.getElementById('cancel-edit-button');
+            if (!form || !heading || !badge || !cancel) return;
+
+            const item = videos.find(v => v.id === id);
+            if (!item) return;
+
+            editingId = id;
+
+            document.getElementById('link').value = item.src; // src já normalizado
+            document.getElementById('title').value = item.title;
+            document.getElementById('description').value = item.description || '';
+
+            heading.textContent = 'Editar vídeo';
+            badge.classList.remove('hidden');
+            cancel.classList.remove('hidden');
+            focusForm();
+
+            // (ALTERAÇÃO) Mostra passos 2 e 3 ao editar, e gera preview
+            handleLinkPreviewAndSteps();
+            document.getElementById('step-2')?.classList.remove('hidden');
+            document.getElementById('step-3')?.classList.remove('hidden');
+        }
+
+        function deleteVideo(id) {
+            const item = videos.find(v => v.id === id);
+            if (!item) return;
+
+            const ok = window.confirm(`Excluir o vídeo "${item.title}"?`);
+            if (!ok) return;
+
+            videos = videos.filter(v => v.id !== id);
+
+            if (editingId === id) resetForm();
+
+            syncAndRender();
+            showToast('Vídeo excluído com sucesso.');
+        }
+
+        function upsertVideoFromForm() {
+            const titleInput = document.getElementById('title');
+            const descInput = document.getElementById('description');
+            const linkInput = document.getElementById('link');
+            if (!titleInput || !descInput || !linkInput) return;
+
+            const title = sanitizeText(titleInput.value, 80);
+            const description = sanitizeText(descInput.value, 200);
+            const normalized = currentNormalized ?? normalizeVideoLink(linkInput.value);
+
+            if (!normalized) {
+                showToast('Cole um link do YouTube válido para continuar.');
+                linkInput.focus();
+                return;
+            }
+
+            if (!title) {
+                showToast('Digite o nome do vídeo.');
+                titleInput.focus();
+                return;
+            }
+
+            if (editingId) {
+                const idx = videos.findIndex(v => v.id === editingId);
+                if (idx === -1) {
+                    resetForm();
+                    showToast('Edição cancelada (item não encontrado).');
+                    return;
+                }
+
+                videos[idx] = {
+                    ...videos[idx],
+                    title,
+                    description,
+                    kind: normalized.kind,
+                    src: normalized.src,
+                    updatedAt: new Date().toISOString(),
+                };
+
+                syncAndRender();
+                resetForm();
+                showToast('Vídeo atualizado com sucesso.');
+                return;
+            }
+
+            videos = [
+                {
+                    id: makeId(),
+                    title,
+                    description,
+                    kind: normalized.kind,
+                    src: normalized.src,
+                    updatedAt: new Date().toISOString(),
+                },
+                ...videos,
+            ];
+
+            syncAndRender();
+            resetForm();
+            showToast('Vídeo salvo com sucesso.');
+        }
+
+        // ---------------------------
+        // Eventos
+        // ---------------------------
+
+        document.getElementById('video-form').addEventListener('submit', (event) => {
+            event.preventDefault();
+            upsertVideoFromForm();
+        });
+
+        document.getElementById('cancel-edit-button').addEventListener('click', () => {
+            resetForm();
+            showToast('Edição cancelada.');
+        });
+
+        // ---------------------------
+        // (ALTERAÇÃO) Preview automático + passos
+        // ---------------------------
+
+        let currentNormalized = null;
+
+        function setPreview(normalized, titleForA11y) {
+            const wrap = document.getElementById('preview-wrap');
+            const media = document.getElementById('preview-media');
+            if (!wrap || !media) return;
+
+            media.innerHTML = '';
+
+            if (!normalized) {
+                wrap.classList.add('hidden');
+                return;
+            }
+
+            wrap.classList.remove('hidden');
+
+            if (normalized.kind === 'youtube') {
+                const iframe = document.createElement('iframe');
+                iframe.className = 'w-full h-full';
+                iframe.src = normalized.src;
+                iframe.title = titleForA11y || 'Vídeo';
+                iframe.loading = 'lazy';
+                iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+                iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+                iframe.allowFullscreen = true;
+                media.appendChild(iframe);
+            } else {
+                const video = document.createElement('video');
+                video.className = 'w-full h-full object-cover';
+                video.src = normalized.src;
+                video.controls = true;
+                video.preload = 'metadata';
+                video.playsInline = true;
+                media.appendChild(video);
+            }
+        }
+
+        function handleLinkPreviewAndSteps() {
+            const linkInput = document.getElementById('link');
+            const titleInput = document.getElementById('title');
+            const step2 = document.getElementById('step-2');
+            const step3 = document.getElementById('step-3');
+            const linkError = document.getElementById('link-error');
+            const saveBtn = document.getElementById('save-button');
+            if (!linkInput || !titleInput || !step2 || !step3 || !linkError || !saveBtn) return;
+
+            const linkValue = linkInput.value.trim();
+            if (!linkValue) {
+                currentNormalized = null;
+                linkError.classList.add('hidden');
+                setPreview(null);
+                step2.classList.add('hidden');
+                step3.classList.add('hidden');
+                saveBtn.setAttribute('disabled', 'disabled');
+                return;
+            }
+
+            const normalized = normalizeVideoLink(linkValue);
+            currentNormalized = normalized;
+
+            if (!normalized) {
+                linkError.classList.remove('hidden');
+                setPreview(null);
+                step2.classList.add('hidden');
+                step3.classList.add('hidden');
+                saveBtn.setAttribute('disabled', 'disabled');
+                return;
+            }
+
+            linkError.classList.add('hidden');
+            setPreview(normalized, titleInput.value.trim());
+            step2.classList.remove('hidden');
+
+            // Passo 3 aparece quando o nome do vídeo já foi preenchido (menos "poluição" visual)
+            if (titleInput.value.trim()) step3.classList.remove('hidden');
+            else step3.classList.add('hidden');
+
+            // Só libera salvar quando link válido + nome preenchido
+            if (titleInput.value.trim()) saveBtn.removeAttribute('disabled');
+            else saveBtn.setAttribute('disabled', 'disabled');
+        }
+
+        document.getElementById('link').addEventListener('input', () => {
+            handleLinkPreviewAndSteps();
+        });
+
+        document.getElementById('title').addEventListener('input', () => {
+            handleLinkPreviewAndSteps();
+        });
+
+        // ---------------------------
+        // (ALTERAÇÃO) Login simples
+        // ---------------------------
+
+        function setLoggedIn(value) {
+            localStorage.setItem(AUTH_STORAGE_KEY, value ? '1' : '');
+        }
+
+        function isLoggedIn() {
+            return localStorage.getItem(AUTH_STORAGE_KEY) === '1';
+        }
+
+        function showScreen() {
+            const login = document.getElementById('login-screen');
+            const app = document.getElementById('app-screen');
+            if (!login || !app) return;
+
+            if (isLoggedIn()) {
+                login.classList.add('hidden');
+                app.classList.remove('hidden');
+            } else {
+                app.classList.add('hidden');
+                login.classList.remove('hidden');
+            }
+        }
+
+        (function initMobileNav() {
+            const toggle = document.getElementById('nav-toggle');
+            const menu = document.getElementById('mobile-menu');
+            if (!toggle || !menu) return;
+
+            const closeMenu = () => {
+                menu.classList.add('hidden');
+                toggle.setAttribute('aria-expanded', 'false');
+                toggle.classList.remove('is-open');
+            };
+
+            toggle.addEventListener('click', () => {
+                const isOpen = !menu.classList.contains('hidden');
+                if (isOpen) closeMenu();
+                else {
+                    menu.classList.remove('hidden');
+                    toggle.setAttribute('aria-expanded', 'true');
+                    toggle.classList.add('is-open');
+                }
+            });
+
+            menu.addEventListener('click', (event) => {
+                const target = event.target;
+                if (target && target.closest && target.closest('a')) closeMenu();
+            });
+
+            window.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') closeMenu();
+            });
+
+            window.addEventListener('resize', () => {
+                if (window.matchMedia('(min-width: 768px)').matches) closeMenu();
+            });
+        })();
+
+        document.getElementById('login-form').addEventListener('submit', (event) => {
+            event.preventDefault();
+            const user = document.getElementById('login-user').value.trim();
+            const pass = document.getElementById('login-pass').value.trim();
+            const error = document.getElementById('login-error');
+
+                if (user === 'admin' && pass === 'admin') {
+                    setLoggedIn(true);
+                    error.classList.add('hidden');
+                    showScreen();
+                    // inicia app
+                    videos = loadVideos();
+                    renderList(videos);
+                    resetForm();
+                    focusForm();
+                    loadDashboardStats();
+                    return;
+                }
+
+            error.classList.remove('hidden');
+        });
+
+        const logoutButton = document.getElementById('logout-button');
+        const logoutButtonMobile = document.getElementById('logout-button-mobile');
+        [logoutButton, logoutButtonMobile].filter(Boolean).forEach((btn) => {
+            btn.addEventListener('click', () => {
+                setLoggedIn(false);
+                showScreen();
+            });
+        });
+
+        // Inicialização
+        window.addEventListener('load', () => {
+            showScreen();
+            if (isLoggedIn()) {
+                videos = loadVideos();
+                renderList(videos);
+                resetForm();
+                focusForm();
+                loadDashboardStats();
+            }
+        });
+
+        // Atualiza automaticamente se outro lugar alterar a lista de vídeos
+        window.addEventListener('storage', (event) => {
+            if (event && event.key === VIDEO_STORAGE_KEY && isLoggedIn()) {
+                videos = loadVideos();
+                renderList(videos);
+            }
+        });
+    </script>
+</body>
+</html>

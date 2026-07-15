@@ -73,8 +73,8 @@ function buildPasswordResetEmailHtml(string $toName, string $resetUrl): string
     $preheader = 'Use o botão abaixo para redefinir sua senha (válido por 60 minutos).';
     $preheaderEsc = htmlspecialchars($preheader, ENT_QUOTES, 'UTF-8');
 
-    $primary = '#1e3a8a';
-    $primaryHover = '#1e40af';
+    $primary = '#1A3D63';
+    $primaryHover = '#1A3D63';
     $bg = '#f0f4f8';
     $surface = '#ffffff';
     $text = '#0f172a';
@@ -180,15 +180,6 @@ function sendPasswordResetEmail(string $toEmail, string $toName, string $resetUr
     curl_close($ch);
 
     return $status >= 200 && $status < 300;
-}
-
-function isLocalEnvironment(): bool
-{
-    $host = strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
-    return $host === 'localhost'
-        || str_starts_with($host, 'localhost:')
-        || str_starts_with($host, '127.0.0.1')
-        || str_starts_with($host, '[::1]');
 }
 
 function registerAttemptFailed(): void
@@ -471,12 +462,13 @@ $csrf = ensureCsrfToken();
     <meta name="twitter:description" content="Acesse sua conta para gerenciar seu perfil.">
     <meta name="twitter:image" content="https://clubedosparceiros.cloud/img/logo.png">
 
-    <meta name="theme-color" content="#1e3a8a">
+    <meta name="theme-color" content="#1A3D63">
     <title>Entrar - Clube dos Parceiros</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="icon" href="/img/logomenor.png" type="image/png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../assets/theme.css">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/theme.css?v=20260513">
     <style>
         body { font-family: 'Inter', sans-serif; background: #f0f4f8; }
         .auth-card {
@@ -503,10 +495,144 @@ $csrf = ensureCsrfToken();
             .auth-field,
             .auth-btn { transition: none; }
         }
+
+        /* Cores e tipografia padronizadas via ../assets/theme.css */
+        .page-enter {
+            animation: pageFadeIn .32s ease both;
+        }
+        @keyframes pageFadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .page-enter { animation: none; }
+        }
+
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            background: rgba(15, 23, 42, 0.55);
+            backdrop-filter: blur(6px);
+        }
+        .loading-overlay.is-visible {
+            display: flex;
+        }
+        .loading-card {
+            width: 100%;
+            max-width: 420px;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            border-radius: 1.25rem;
+            box-shadow: 0 22px 60px rgba(15, 23, 42, 0.25);
+            padding: 1.25rem 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.9rem;
+            transform: translateY(8px);
+            opacity: 0;
+            transition: transform .18s ease, opacity .18s ease;
+        }
+        .loading-overlay.is-visible .loading-card {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .loading-spinner {
+            width: 2.25rem;
+            height: 2.25rem;
+            border-radius: 999px;
+            border: 3px solid rgba(26, 61, 99, 0.22);
+            border-top-color: var(--flow-primary);
+            animation: spin .8s linear infinite;
+            flex: 0 0 auto;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @media (prefers-reduced-motion: reduce) {
+            .loading-card { transition: none; transform: none; opacity: 1; }
+            .loading-spinner { animation: none; }
+        }
+
+        .auth-btn.is-loading {
+            cursor: wait;
+            opacity: 0.92;
+        }
+        .auth-btn .btn-inline {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+        }
+        .auth-btn .btn-mini-spinner {
+            width: 1.05rem;
+            height: 1.05rem;
+            border-radius: 999px;
+            border: 2px solid rgba(255, 255, 255, 0.35);
+            border-top-color: #ffffff;
+            animation: spin .8s linear infinite;
+            display: none;
+        }
+        .auth-btn.is-loading .btn-mini-spinner {
+            display: inline-block;
+        }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center px-4 py-10">
-    <main class="auth-card w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-sm p-6">
+<body class="min-h-screen bg-slate-50 text-slate-900 page-enter">
+    <nav class="fixed top-0 w-full z-50 bg-blue-900/95 text-white backdrop-blur-md border-b border-blue-800/60">
+        <div class="container mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between gap-3">
+            <a href="<?php echo htmlspecialchars(appPath('/index.html'), ENT_QUOTES, 'UTF-8'); ?>" class="shrink-0 flex items-center gap-3 text-white font-black text-base sm:text-xl min-w-0">
+                <img src="../img/logomenor.png" alt="Logo Clube dos Parceiros" class="h-14 sm:h-16 w-auto object-contain">
+                <span class="truncate text-sm sm:text-xl max-w-[170px] sm:max-w-none">Clube dos Parceiros</span>
+            </a>
+
+            <div class="hidden md:flex flex-1 items-center justify-center gap-6 lg:gap-8 text-sm font-medium text-white/85">
+                <a href="<?php echo htmlspecialchars(appPath('/index.html#como-funciona'), ENT_QUOTES, 'UTF-8'); ?>" class="hover:text-white transition-colors">Como funciona</a>
+                <a href="<?php echo htmlspecialchars(appPath('/index.html#vantagens'), ENT_QUOTES, 'UTF-8'); ?>" class="hover:text-white transition-colors">Vantagens</a>
+                <a href="<?php echo htmlspecialchars(appPath('/index.html#videos'), ENT_QUOTES, 'UTF-8'); ?>" class="hover:text-white transition-colors">Vídeos</a>
+                <a href="<?php echo htmlspecialchars(appPath('/access/painel.php'), ENT_QUOTES, 'UTF-8'); ?>" class="hover:text-white transition-colors">Ver profissionais</a>
+            </div>
+
+            <div class="hidden md:flex shrink-0 flex-wrap items-center justify-end gap-2 sm:gap-3">
+                <a href="<?php echo htmlspecialchars(appPath('/access/login.php?mode=register&next=' . rawurlencode($nextPath)), ENT_QUOTES, 'UTF-8'); ?>" class="flow-btn flow-btn-light px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-semibold transition-all duration-300 transform hover:-translate-y-1 shadow-md flex items-center justify-center gap-2 border-2 text-xs sm:text-sm whitespace-nowrap">
+                    Cadastrar
+                </a>
+                <a href="<?php echo htmlspecialchars(appPath('/access/login.php?mode=login'), ENT_QUOTES, 'UTF-8'); ?>" class="flow-btn flow-btn-light px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-semibold transition-all duration-300 transform hover:-translate-y-1 shadow-md flex items-center justify-center gap-2 border-2 text-xs sm:text-sm whitespace-nowrap">
+                    Entrar
+                </a>
+            </div>
+
+            <button id="nav-toggle" type="button" class="hamburger md:hidden text-white/90 hover:text-white transition" aria-label="Abrir menu" aria-controls="mobile-menu" aria-expanded="false">
+                <span class="hamburger-lines" aria-hidden="true">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </span>
+            </button>
+        </div>
+
+        <div id="mobile-menu" class="md:hidden hidden px-4 sm:px-6 pb-4 pt-2 bg-blue-900 border-t border-blue-800/60">
+            <div class="flex flex-col gap-1 text-sm font-semibold">
+                <a href="<?php echo htmlspecialchars(appPath('/index.html#como-funciona'), ENT_QUOTES, 'UTF-8'); ?>" class="px-3 py-2 rounded-lg hover:bg-white/10 transition">Como funciona</a>
+                <a href="<?php echo htmlspecialchars(appPath('/index.html#vantagens'), ENT_QUOTES, 'UTF-8'); ?>" class="px-3 py-2 rounded-lg hover:bg-white/10 transition">Vantagens</a>
+                <a href="<?php echo htmlspecialchars(appPath('/index.html#videos'), ENT_QUOTES, 'UTF-8'); ?>" class="px-3 py-2 rounded-lg hover:bg-white/10 transition">Vídeos</a>
+                <a href="<?php echo htmlspecialchars(appPath('/access/painel.php'), ENT_QUOTES, 'UTF-8'); ?>" class="px-3 py-2 rounded-lg hover:bg-white/10 transition">Ver profissionais</a>
+            </div>
+            <div class="mt-3 grid grid-cols-2 gap-2">
+                <a href="<?php echo htmlspecialchars(appPath('/access/login.php?mode=register&next=' . rawurlencode($nextPath)), ENT_QUOTES, 'UTF-8'); ?>" class="flow-btn flow-btn-light px-3 py-2 rounded-lg font-bold border-2 transition text-center">
+                    Cadastrar
+                </a>
+                <a href="<?php echo htmlspecialchars(appPath('/access/login.php?mode=login'), ENT_QUOTES, 'UTF-8'); ?>" class="flow-btn flow-btn-light px-3 py-2 rounded-lg font-bold border-2 transition text-center">
+                    Entrar
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="pt-28 flex items-center justify-center px-4 py-10">
+        <main class="auth-card w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-sm p-6">
         <?php
             $title = 'Entrar';
             $subtitle = 'Acesse sua conta para criar ou editar apenas o seu perfil.';
@@ -590,8 +716,11 @@ $csrf = ensureCsrfToken();
                 }
             ?>
 
-            <button type="submit" class="auth-btn w-full rounded-xl bg-blue-700 hover:bg-blue-800 text-white font-bold py-3">
-                <?php echo htmlspecialchars($submitLabel, ENT_QUOTES, 'UTF-8'); ?>
+            <button type="submit" class="auth-btn flow-btn w-full rounded-xl border-2 font-bold py-3">
+                <span class="btn-inline">
+                    <span class="btn-mini-spinner" aria-hidden="true"></span>
+                    <span class="btn-label"><?php echo htmlspecialchars($submitLabel, ENT_QUOTES, 'UTF-8'); ?></span>
+                </span>
             </button>
         </form>
 
@@ -608,7 +737,80 @@ $csrf = ensureCsrfToken();
                 <a href="<?php echo htmlspecialchars(appPath('/access/login.php?mode=login&next=' . rawurlencode($nextPath)), ENT_QUOTES, 'UTF-8'); ?>" class="text-blue-700 font-semibold hover:underline">Voltar para entrar</a>
             <?php endif; ?>
         </div>
-    </main>
+        </main>
+    </div>
+
+    <div id="loadingOverlay" class="loading-overlay" aria-hidden="true">
+        <div class="loading-card" role="status" aria-live="polite">
+            <div class="loading-spinner" aria-hidden="true"></div>
+            <div class="text-left">
+                <p class="font-extrabold text-slate-900 leading-tight">Carregando…</p>
+                <p class="text-sm text-slate-600 mt-0.5">Aguarde só um instante.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function initMobileNav() {
+            const toggle = document.getElementById('nav-toggle');
+            const menu = document.getElementById('mobile-menu');
+            if (!toggle || !menu) return;
+
+            const closeMenu = () => {
+                menu.classList.add('hidden');
+                toggle.setAttribute('aria-expanded', 'false');
+                toggle.classList.remove('is-open');
+            };
+
+            toggle.addEventListener('click', () => {
+                const isOpen = !menu.classList.contains('hidden');
+                if (isOpen) closeMenu();
+                else {
+                    menu.classList.remove('hidden');
+                    toggle.setAttribute('aria-expanded', 'true');
+                    toggle.classList.add('is-open');
+                }
+            });
+
+            menu.addEventListener('click', (event) => {
+                const target = event.target;
+                if (target && target.closest && target.closest('a')) closeMenu();
+            });
+
+            window.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') closeMenu();
+            });
+
+            window.addEventListener('resize', () => {
+                if (window.matchMedia('(min-width: 768px)').matches) closeMenu();
+            });
+        })();
+
+        (function initAuthLoading() {
+            const form = document.querySelector('form[method="post"]');
+            const overlay = document.getElementById('loadingOverlay');
+            if (!form) return;
+
+            const btn = form.querySelector('button[type="submit"]');
+            const label = btn ? btn.querySelector('.btn-label') : null;
+            let locked = false;
+
+            form.addEventListener('submit', () => {
+                if (locked) return;
+                locked = true;
+
+                if (btn) {
+                    btn.classList.add('is-loading');
+                    btn.setAttribute('disabled', 'disabled');
+                    btn.setAttribute('aria-disabled', 'true');
+                    if (label) label.textContent = 'Carregando…';
+                }
+                if (overlay) {
+                    overlay.classList.add('is-visible');
+                    overlay.setAttribute('aria-hidden', 'false');
+                }
+            });
+        })();
+    </script>
 </body>
 </html>
-

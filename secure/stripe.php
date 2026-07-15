@@ -19,7 +19,7 @@ function stripePriceId(): string
 function stripeSuccessUrl(): string
 {
     $cfg = appConfig();
-    $default = appBaseUrl() . appPath('/access/subscribe_success.php');
+    $default = appBaseUrl() . appPath('/access/checkout_success.php');
     $raw = trim((string) envValue('STRIPE_SUCCESS_URL', $default));
     if ($raw === '') {
         return $default;
@@ -33,7 +33,7 @@ function stripeSuccessUrl(): string
 function stripeCancelUrl(): string
 {
     $cfg = appConfig();
-    $default = appBaseUrl() . appPath('/access/subscribe_cancel.php');
+    $default = appBaseUrl() . appPath('/access/checkout_cancel.php');
     $raw = trim((string) envValue('STRIPE_CANCEL_URL', $default));
     if ($raw === '') {
         return $default;
@@ -157,4 +157,3 @@ function stripeUnixToDateTime(?int $unix): ?string
     }
     return gmdate('Y-m-d H:i:s', $unix);
 }
-

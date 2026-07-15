@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -20,13 +20,15 @@
     <meta name="twitter:description" content="Encontre profissionais de manutenção na sua região e contrate com agilidade.">
     <meta name="twitter:image" content="https://clubedosparceiros.cloud/img/logo.png">
 
-    <meta name="theme-color" content="#1e3a8a">
+    <meta name="theme-color" content="#1A3D63">
     <title>Clube dos Parceiros - Manutenção Inteligente | Encontre Profissionais de Manutenção</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/theme.css?v=20260513">
     <link rel="icon" href="/img/logomenor.png" type="image/png">
 
     <script type="application/ld+json">
@@ -49,6 +51,8 @@
     <style>
         /* Global Styles & Font */
         body { font-family: 'Inter', sans-serif; }
+
+        /* Cores e tipografia padronizadas via assets/theme.css */
         
         /* Keyframes from React Code */
         @keyframes blob {
@@ -146,38 +150,193 @@
         }
     </style>
 </head>
-<body class="min-h-screen text-slate-900 bg-white selection:bg-blue-200 selection:text-blue-900">
+<body class="min-h-screen text-slate-900 bg-white selection:bg-blue-200 selection:text-blue-900 overflow-x-hidden">
 
     <!-- Navbar -->
-    <nav class="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-100">
-        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <div class="flex items-center gap-2 text-blue-900 font-black text-xl">
-                <div class="bg-blue-900 text-white p-1.5 rounded-lg">
-                    <!-- Icon: Clube dos Parceiros/Circle -->
-                       <img 
-        src="img/logomenor.png" 
-        alt="Logo Clube dos Parceiros" 
-        class="h-10 w-auto rounded-md object-contain"
-    />
-                </div>
-                Clube dos parceiros
+    <nav class="fixed top-0 w-full z-50 bg-blue-900/95 text-white backdrop-blur-md border-b border-blue-800/60">
+        <div class="container mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between gap-3">
+            <div class="shrink-0 flex items-center gap-3 text-white font-black text-base sm:text-xl min-w-0">
+                <img
+                    src="img/logomenor.png"
+                    alt="Logo Clube dos Parceiros"
+                    class="h-14 sm:h-16 w-auto object-contain"
+                />
+                <span class="truncate text-sm sm:text-xl max-w-[170px] sm:max-w-none">Clube dos Parceiros</span>
             </div>
-            <div class="hidden md:flex gap-8 text-sm font-medium text-slate-600">
-                <a href="#como-funciona" class="hover:text-blue-900 transition-colors">Como funciona</a>
-                <a href="#vantagens" class="hover:text-blue-900 transition-colors">Vantagens</a>
-                <a href="#profissionais" class="hover:text-blue-900 transition-colors">Profissionais</a>
+
+            <div class="hidden md:flex flex-1 items-center justify-center gap-6 lg:gap-8 text-sm font-medium text-white/85">
+                <a href="#como-funciona" class="hover:text-white transition-colors">Como funciona</a>
+                <a href="#vantagens" class="hover:text-white transition-colors">Vantagens</a>
+                <a href="#videos" class="hover:text-white transition-colors">Vídeos</a>
+                <a href="access/painel.php" class="hover:text-white transition-colors">Ver profissionais</a>
             </div>
-            <div class="flex items-center gap-3">
-                <a href="access/checkout.html" class="px-4 py-2 rounded-lg font-semibold transition-all duration-300 transform hover:-translate-y-1 shadow-md flex items-center justify-center gap-2 bg-white text-blue-900 border-2 border-blue-900 hover:bg-blue-50 text-sm">
+
+             <div class="hidden md:flex shrink-0 flex-wrap items-center justify-end gap-2 sm:gap-3">
+                <a id="nav-signup-btn" href="access/login.php?mode=register" class="flow-btn flow-btn-light px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-semibold transition-all duration-300 transform hover:-translate-y-1 shadow-md flex items-center justify-center gap-2 border-2 text-xs sm:text-sm whitespace-nowrap">
                     Cadastrar
                 </a>
-                <a href="access/login.php?mode=login" class="px-4 py-2 rounded-lg font-semibold transition-all duration-300 transform hover:-translate-y-1 shadow-md flex items-center justify-center gap-2 bg-blue-900 text-white hover:bg-blue-800 hover:shadow-lg hover:shadow-blue-900/30 text-sm">
+                <a id="nav-auth-btn" href="access/login.php?mode=login" class="flow-btn flow-btn-light px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-semibold transition-all duration-300 transform hover:-translate-y-1 shadow-md flex items-center justify-center gap-2 border-2 text-xs sm:text-sm whitespace-nowrap">
                     Entrar
                 </a>
             </div>
-        </div>
-    </nav>
 
+            <button id="nav-toggle" type="button" class="hamburger md:hidden text-white/90 hover:text-white transition" aria-label="Abrir menu" aria-controls="mobile-menu" aria-expanded="false">
+                <span class="hamburger-lines" aria-hidden="true">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </span>
+            </button>
+        </div>
+
+        <div id="mobile-menu" class="md:hidden hidden px-4 sm:px-6 pb-4 pt-2 bg-blue-900 border-t border-blue-800/60">
+            <div class="flex flex-col gap-1 text-sm font-semibold">
+                <a href="#como-funciona" class="px-3 py-2 rounded-lg hover:bg-white/10 transition">Como funciona</a>
+                <a href="#vantagens" class="px-3 py-2 rounded-lg hover:bg-white/10 transition">Vantagens</a>
+                <a href="#videos" class="px-3 py-2 rounded-lg hover:bg-white/10 transition">Vídeos</a>
+                <a href="access/painel.php" class="px-3 py-2 rounded-lg hover:bg-white/10 transition">Ver profissionais</a>
+            </div>
+             <div class="mt-3 grid grid-cols-2 gap-2">
+                <a id="nav-signup-btn-mobile" href="access/login.php?mode=register" class="flow-btn flow-btn-light px-3 py-2 rounded-lg font-bold border-2 transition text-center">
+                    Cadastrar
+                </a>
+                <a id="nav-auth-btn-mobile" href="access/login.php?mode=login" class="flow-btn flow-btn-light px-3 py-2 rounded-lg font-bold border-2 transition text-center">
+                    Entrar
+                </a>
+            </div>
+         </div>
+     </nav>
+
+    <!-- Videos Section -->
+    <section id="videos" class="scroll-mt-0 w-screen">
+        <!--
+            ALTERAÇÃO (exibição): carrossel FULL SCREEN (100vw x 100vh).
+            - Não muda o salvamento/estrutura do localStorage.
+            - 1 vídeo por vez, setas, bolinhas e autoplay leve (pausa ao interagir).
+        -->
+            <div class="hidden">
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Vídeos</h2>
+                <p class="text-slate-600 max-w-2xl mx-auto">Espaço para publicar tutoriais, dicas e exemplos de serviços. Substitua os cards abaixo por um embed do YouTube (iframe) ou por arquivos MP4 (&lt;video&gt;).</p>
+            </div>
+
+            <div id="videos-empty" class="hidden w-screen h-screen h-[100svh] bg-slate-950 flex items-center justify-center px-6">
+                <div class="max-w-md text-center">
+                    <h3 class="text-2xl sm:text-3xl font-black text-white mb-3">Nenhum v&iacute;deo cadastrado</h3>
+                    <p class="text-white/80 leading-relaxed">Adicione v&iacute;deos no painel administrativo para eles aparecerem aqui automaticamente.</p>
+                    <p class="mt-5">
+                        <a href="dashboard.html" class="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-white text-slate-900 font-black hover:bg-slate-100">
+                            Abrir painel
+                        </a>
+                    </p>
+                </div>
+            </div>
+
+            <!--
+                ALTERAÇÃO (exibição): a lista virou um carrossel estilo banner (hero).
+                - Mantém o carregamento via localStorage (mesma chave/estrutura).
+                - Mostra 1 vídeo por vez, com setas, indicadores e autoplay leve (pausa ao interagir).
+            -->
+            <div id="videos-carousel" class="hidden relative w-screen h-screen h-[100svh] bg-slate-950 overflow-hidden">
+                <div class="absolute inset-0 bg-slate-950 overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/10 pointer-events-none"></div>
+
+                    <div class="relative h-full">
+                        <div id="videos-slides" class="h-full flex transition-transform duration-500 ease-out will-change-transform">
+                            <!-- Slides renderizados automaticamente via localStorage -->
+                        </div>
+                    </div>
+
+                    <!-- Texto (overlay) -->
+                    <div class="absolute inset-0 flex items-end pointer-events-none">
+                        <div class="w-full px-6 sm:px-10 pb-10 sm:pb-14">
+                            <div class="max-w-4xl">
+                                <h3 id="videos-slide-title" class="text-white text-3xl sm:text-5xl font-black leading-tight drop-shadow"></h3>
+                                <p id="videos-slide-desc" class="mt-3 text-white/85 text-base sm:text-lg leading-relaxed max-h-24 sm:max-h-28 overflow-hidden drop-shadow"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Nav buttons -->
+                    <button id="videos-prev" type="button" aria-label="Voltar"
+                            class="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white/90 hover:bg-white text-slate-900 shadow-2xl flex items-center justify-center backdrop-blur focus:outline-none focus:ring-4 focus:ring-blue-300">
+                        <svg class="h-7 w-7 sm:h-8 sm:w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M15 18l-6-6 6-6"/>
+                        </svg>
+                    </button>
+                    <button id="videos-next" type="button" aria-label="Avançar"
+                            class="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white/90 hover:bg-white text-slate-900 shadow-2xl flex items-center justify-center backdrop-blur focus:outline-none focus:ring-4 focus:ring-blue-300">
+                        <svg class="h-7 w-7 sm:h-8 sm:w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 6l6 6-6 6"/>
+                        </svg>
+                    </button>
+
+                    <!-- Dots -->
+                    <div class="absolute bottom-6 sm:bottom-8 inset-x-0 flex justify-center">
+                        <div id="videos-dots" class="flex items-center gap-2 bg-black/25 border border-white/10 backdrop-blur px-4 py-2.5 rounded-full">
+                            <!-- indicadores -->
+                        </div>
+                    </div>
+                </div>
+
+                <p class="hidden">
+                    Dica: você pode adicionar/editar vídeos no <a href="dashboard.html" class="text-blue-900 font-semibold hover:underline">painel</a>.
+                </p>
+            </div>
+
+            <div id="videos-grid-static" class="hidden grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden hover:shadow-2xl transition-shadow duration-300">
+                    <div class="relative w-full pt-[56.25%] bg-slate-300">
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <span class="text-white font-black tracking-[0.35em] text-4xl md:text-5xl">VIDEO</span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-lg font-bold text-slate-900 mb-2">Como contratar com segurança</h3>
+                        <p class="text-slate-600 text-sm leading-relaxed mb-4">Boas práticas para escolher o profissional ideal e alinhar detalhes do serviço.</p>
+                        <a href="#" class="inline-flex items-center gap-2 text-blue-900 font-semibold hover:underline">Adicionar link do vídeo</a>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden hover:shadow-2xl transition-shadow duration-300">
+                    <div class="relative w-full pt-[56.25%] bg-slate-300">
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <span class="text-white font-black tracking-[0.35em] text-4xl md:text-5xl">VIDEO</span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-lg font-bold text-slate-900 mb-2">Dicas rápidas de manutenção</h3>
+                        <p class="text-slate-600 text-sm leading-relaxed mb-4">Pequenas ações para evitar problemas comuns em elétrica, hidráulica e refrigeração.</p>
+                        <a href="#" class="inline-flex items-center gap-2 text-blue-900 font-semibold hover:underline">Adicionar link do vídeo</a>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden hover:shadow-2xl transition-shadow duration-300 md:col-span-2 lg:col-span-1">
+                    <div class="relative w-full pt-[56.25%] bg-slate-300">
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <span class="text-white font-black tracking-[0.35em] text-4xl md:text-5xl">VIDEO</span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-lg font-bold text-slate-900 mb-2">Antes e depois: casos reais</h3>
+                        <p class="text-slate-600 text-sm leading-relaxed mb-4">Exemplos de serviços finalizados com foco em qualidade, prazo e avaliação.</p>
+                        <a href="#" class="inline-flex items-center gap-2 text-blue-900 font-semibold hover:underline">Adicionar link do vídeo</a>
+                    </div>
+                </div>
+            </div>
+    </section>
+
+    <!-- Ícones / Atalhos (usando as IMAGENS fornecidas) -->
+    <section aria-label="Serviços" class="bg-white border-b border-slate-100">
+        <div class="container mx-auto px-6 py-10">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-8 sm:gap-10 items-start justify-items-center">
+                <img src="img/atalhos/loja-virtual.png" alt="Loja Virtual" class="w-full max-w-[220px] h-auto object-contain">
+                <img src="img/atalhos/sua-publicidade.png" alt="Sua Publicidade" class="w-full max-w-[220px] h-auto object-contain">
+                <img src="img/atalhos/secretaria-eletronica-ia.png" alt="Secretaria Eletrônica IA" class="w-full max-w-[220px] h-auto object-contain">
+                <img src="img/atalhos/perfil-profissional.png" alt="Perfil Profissional" class="w-full max-w-[220px] h-auto object-contain">
+            </div>
+        </div>
+    </section>
+ 
     <!-- Hero Section -->
     <header class="pt-32 pb-20 lg:pt-48 lg:pb-32 px-6 relative overflow-hidden">
         <!-- Background Blobs -->
@@ -188,15 +347,10 @@
             <div class="space-y-6 animate-slide-in-left">
                 <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-bold tracking-wide uppercase">
                     <span class="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
-                    Disponível em todo Brasil
+                    Disponível em todo o Brasil
                 </div>
-                <h1 class="text-4xl lg:text-6xl font-extrabold leading-tight text-slate-900">
-                    O marketplace de serviços<span class="text-blue-900 relative">
-                        para encontrar  
-                        <svg class="absolute w-full h-3 -bottom-1 left-0 text-blue-200 -z-10" viewBox="0 0 100 10" preserveAspectRatio="none">
-                            <path d="M0 5 Q 50 10 100 5" stroke="currentColor" stroke-width="8" fill="none" />
-                        </svg>
-                    </span> ou oferecer profissionais perto de você
+                <h1 class="flow-heading text-4xl lg:text-6xl font-extrabold leading-tight text-slate-900">
+                    O marketplace de serviços <span class="text-brand-light relative inline-block">para encontrar<svg aria-hidden="true" class="pointer-events-none absolute left-0 w-full h-3 -bottom-1 text-blue-200 -z-10" viewBox="0 0 100 10" preserveAspectRatio="none"><path d="M0 5 Q 50 10 100 5" stroke="currentColor" stroke-width="8" fill="none" /></svg></span> ou oferecer profissionais perto de você
                 </h1>
                 <p class="text-lg text-slate-600 max-w-lg">
                     Nós conectamos clientes aos melhores eletricistas, encanadores, técnicos de ar-condicionado e outros especialistas — rápido, simples e sem complicação.
@@ -226,9 +380,8 @@
                 <div class="relative w-80 h-80 md:w-96 md:h-96">
                     <!-- Animated Gear Construction -->
 
-                    <img src="img/logo.png" alt=""
-                    alt="Imagem de Exemplo"
-                    class="w-full h-full object-cover rounded-full z-20 shadow-lg"
+                    <img src="img/logo.png" alt="Logo do Clube dos Parceiros"
+                    class="w-full h-full object-contain rounded-full z-20 shadow-lg bg-white p-10"
                     onerror="this.onerror=null;this.src='https://placehold.co/300x300/ef4444/ffffff?text=Falha+no+Carregamento'">
                         
                         <!-- Floating Orbital Icons -->
@@ -254,7 +407,7 @@
     <section id="vantagens" class="py-20 bg-slate-50">
         <div class="container mx-auto px-6">
             <div class="text-center mb-12 animate-fade-in-up">
-                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Por que usar Clube dos Parceiros?</h2>
+                <h2 class="flow-heading text-3xl md:text-4xl font-bold text-slate-900 mb-4">Por que usar Clube dos Parceiros?</h2>
                 <p class="text-slate-600 max-w-2xl mx-auto">Entenda por que somos a escolha número 1 para serviços residenciais e comerciais.</p>
             </div>
             
@@ -294,7 +447,7 @@
     <section id="como-funciona" class="py-20 bg-white relative">
         <div class="container mx-auto px-6">
             <div class="text-center mb-12 animate-fade-in-up">
-                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Como o Clube dos Parceiros funciona?</h2>
+                <h2 class="flow-heading text-3xl md:text-4xl font-bold text-slate-900 mb-4">Como o Clube dos Parceiros funciona?</h2>
             </div>
 
             <div class="grid md:grid-cols-3 gap-12 relative mt-16">
@@ -333,7 +486,7 @@
     <section id="profissionais" class="py-20 bg-gradient-to-b from-slate-50 to-white">
         <div class="container mx-auto px-6">
             <div class="text-center mb-12 animate-fade-in-up">
-                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Demonstração do Clube dos Parceiros</h2>
+                <h2 class="flow-heading text-3xl md:text-4xl font-bold text-slate-900 mb-4">Demonstração do Clube dos Parceiros</h2>
                 <p class="text-slate-600 max-w-2xl mx-auto">Teste nossa interface em tempo real. Filtre por 'Elétrica' ou locais como 'Osasco'.</p>
             </div>
             
@@ -350,13 +503,13 @@
     <!-- CTA Footer -->
     <section class="py-20 bg-blue-900 text-white text-center">
         <div class="container mx-auto px-6">
-            <h2 class="text-3xl md:text-4xl font-bold mb-6">Pronto para resolver seu problema com Clube dos Parceiros?</h2>
+            <h2 class="flow-heading text-3xl md:text-4xl font-bold mb-6">Pronto para resolver seu problema com Clube dos Parceiros?</h2>
             <p class="text-blue-100 max-w-2xl mx-auto mb-10 text-lg">
                 Junte-se a milhares de clientes satisfeitos e encontre o profissional ideal hoje mesmo.
             </p>
-            <button class="px-8 py-4 rounded-lg font-bold transition-all duration-300 transform hover:-translate-y-1 shadow-md flex items-center justify-center gap-2 bg-white text-blue-900 border-none hover:bg-blue-50 hover:shadow-xl mx-auto text-lg">
+            <a href="access/painel.php" class="px-8 py-4 rounded-lg font-bold transition-all duration-300 transform hover:-translate-y-1 shadow-md flex items-center justify-center gap-2 bg-white text-blue-900 border-none hover:bg-blue-50 hover:shadow-xl mx-auto text-lg">
                 Buscar Profissional Agora
-            </button>
+            </a>
         </div>
     </section>
 
@@ -364,7 +517,7 @@
     <footer class="bg-slate-900 text-slate-400 py-12 border-t border-slate-800">
         <div class="container mx-auto px-6 text-center">
             <div class="flex items-center justify-center gap-2 text-white font-bold text-xl mb-8">
-                Clube dos parceiros
+                Clube dos Parceiros
             </div>
             <p class="mb-6 text-sm max-w-md mx-auto">
                 Plataforma de conexão entre clientes e profissionais de manutenção, com avaliações reais e contato direto.
@@ -385,13 +538,13 @@
             <div class="w-full max-w-xl bg-white rounded-2xl shadow-2xl border border-slate-200 p-6">
                 <h3 class="text-xl font-bold text-slate-900 mb-2">Aviso de responsabilidade</h3>
                 <p class="text-slate-600 text-sm leading-relaxed mb-4">
-                    O Clube dos parceiros apenas conecta clientes e profissionais. Nao nos responsabilizamos pela execucao dos servicos contratados entre as partes.
+                    O Clube dos Parceiros apenas conecta clientes e profissionais. Não nos responsabilizamos pela execução dos serviços contratados entre as partes.
                 </p>
                 <p class="text-sm mb-5">
                     <a href="access/termos_responsabilidade.php" class="text-blue-700 font-semibold hover:underline">Ler Termo de Responsabilidade</a>
                 </p>
                 <div class="flex flex-col sm:flex-row gap-3 sm:justify-end">
-                    <button id="legal-later" class="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50">Agora nao</button>
+                    <button id="legal-later" class="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50">Agora não</button>
                     <button id="legal-accept" class="px-4 py-2 rounded-lg bg-blue-900 text-white font-semibold hover:bg-blue-800">Aceito</button>
                 </div>
             </div>
@@ -402,10 +555,17 @@
     <div id="cookie-bar" class="fixed bottom-0 inset-x-0 z-[95] hidden">
         <div class="mx-auto max-w-6xl m-3 rounded-xl border border-slate-200 bg-white shadow-lg p-4 flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
              <p class="text-sm text-slate-600">
-                 Usamos cookies para melhorar sua experiencia e seguranca no site.
-                <a href="access/politica_privacidade.php" class="text-blue-700 font-semibold hover:underline">Saiba mais</a>
-             </p>
+                  Usamos cookies para melhorar sua experiência e segurança no site.
+                 <a href="access/politica_privacidade.php" class="text-blue-700 font-semibold hover:underline">Saiba mais</a>
+              </p>
             <button id="cookie-accept" class="px-4 py-2 rounded-lg bg-blue-900 text-white text-sm font-semibold hover:bg-blue-800 whitespace-nowrap">Permitir cookies</button>
+        </div>
+    </div>
+
+    <!-- Toast (feedback visual para interações/demo) -->
+    <div id="app-toast" class="fixed bottom-4 right-4 z-[110] hidden">
+        <div class="max-w-sm rounded-xl border border-slate-200 bg-white shadow-xl px-4 py-3">
+            <p id="app-toast-text" class="text-sm font-semibold text-slate-900"></p>
         </div>
     </div>
 
@@ -425,6 +585,32 @@
         let locationTerm = "";
         let filteredPros = MOCK_PROFESSIONALS;
 
+        // Simple toast feedback for demo interactions
+        let __toastTimer = null;
+        function showAppToast(message) {
+            const toast = document.getElementById('app-toast');
+            const text = document.getElementById('app-toast-text');
+            if (!toast || !text) return;
+
+            text.textContent = String(message ?? '');
+            toast.classList.remove('hidden');
+
+            clearTimeout(__toastTimer);
+            __toastTimer = setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 2500);
+        }
+
+        // Escape HTML (defense-in-depth against XSS if data becomes dynamic)
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
         /**
          * Gera o HTML para um único card de profissional.
          */
@@ -436,7 +622,7 @@
             }).join('');
 
             const services = pro.services.map(s => 
-                `<span class="px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded-md font-medium">${s}</span>`
+                `<span class="px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded-md font-medium">${escapeHtml(s)}</span>`
             ).join('');
 
             return `
@@ -444,13 +630,13 @@
                     <div class="flex flex-col sm:flex-row justify-between gap-4">
                         <div class="flex-1">
                             <div class="flex items-center gap-2 mb-1">
-                                <h4 class="font-bold text-lg text-slate-800">${pro.name}</h4>
+                                <h4 class="font-bold text-lg text-slate-800">${escapeHtml(pro.name)}</h4>
                                 ${pro.online ? '<span class="w-2 h-2 rounded-full bg-green-500" title="Online"></span>' : ''}
                             </div>
                             <p class="text-sm text-slate-500 flex items-center gap-1 mb-2">
                                 <!-- Icon: MapPin -->
                                 <svg class="h-3 w-3 icon-svg" viewBox="0 0 24 24"><path d="M21 10c0 7-9 11-9 11s-9-4-9-11a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                                ${pro.location}
+                                ${escapeHtml(pro.location)}
                             </p>
                             <div class="flex flex-wrap gap-2 mt-3">
                                 ${services}
@@ -465,17 +651,17 @@
                             </div>
                             <div class="flex gap-2 mt-auto">
                                 <!-- Botão Mail -->
-                                <button class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="E-mail">
+                                <button type="button" data-action="email" data-pro-id="${pro.id}" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="E-mail" aria-label="Enviar e-mail">
                                     <!-- Icon: Mail -->
                                     <svg class="h-4.5 w-4.5 icon-svg" viewBox="0 0 24 24"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
                                 </button>
                                 <!-- Botão MessageCircle (Chat) -->
-                                <button class="p-2 text-slate-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors" title="Chat">
+                                <button type="button" data-action="chat" data-pro-id="${pro.id}" class="p-2 text-slate-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors" title="Chat" aria-label="Abrir chat">
                                     <!-- Icon: MessageCircle -->
                                     <svg class="h-4.5 w-4.5 icon-svg" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
                                 </button>
                                 <!-- Botão Contatar (Demo Button Style) -->
-                                <button class="bg-blue-900 text-white hover:bg-blue-800 text-sm py-2 px-4 rounded-lg font-semibold transition-all duration-300 transform hover:-translate-y-1 shadow-md">
+                                <button type="button" data-action="contact" data-pro-id="${pro.id}" class="bg-blue-900 text-white hover:bg-blue-800 text-sm py-2 px-4 rounded-lg font-semibold transition-all duration-300 transform hover:-translate-y-1 shadow-md">
                                     Contatar
                                 </button>
                             </div>
@@ -593,6 +779,17 @@
                 </div>
             `;
             
+            // Event delegation for demo card actions (email/chat/contact)
+            container.addEventListener('click', (event) => {
+                const button = event.target?.closest?.('button[data-action]');
+                if (!button) return;
+
+                const action = button.getAttribute('data-action');
+                if (action === 'email') showAppToast('Demonstração: abrir e-mail do profissional.');
+                else if (action === 'chat') showAppToast('Demonstração: iniciar chat/WhatsApp com o profissional.');
+                else if (action === 'contact') showAppToast('Demonstração: entrar em contato com o profissional.');
+            });
+
             // --- Event Listeners and Initial Render Setup ---
             const searchInput = document.getElementById('search-term-input');
             const locationInput = document.getElementById('location-term-input');
@@ -668,10 +865,519 @@
             });
         }
 
-        window.addEventListener('load', () => {
+        function initMobileNav() {
+            const toggle = document.getElementById('nav-toggle');
+            const menu = document.getElementById('mobile-menu');
+            if (!toggle || !menu) return;
+
+            const closeMenu = () => {
+                menu.classList.add('hidden');
+                toggle.setAttribute('aria-expanded', 'false');
+                toggle.classList.remove('is-open');
+            };
+
+            const openMenu = () => {
+                menu.classList.remove('hidden');
+                toggle.setAttribute('aria-expanded', 'true');
+                toggle.classList.add('is-open');
+            };
+
+            toggle.addEventListener('click', () => {
+                const isOpen = !menu.classList.contains('hidden');
+                if (isOpen) closeMenu();
+                else openMenu();
+            });
+
+            menu.addEventListener('click', (event) => {
+                const target = event.target;
+                if (target && target.closest && target.closest('a')) {
+                    closeMenu();
+                }
+            });
+
+            window.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') closeMenu();
+            });
+
+            window.addEventListener('resize', () => {
+                if (window.matchMedia('(min-width: 768px)').matches) {
+                    closeMenu();
+                }
+            });
+        }
+
+        // ---------------------------------------------------------------------
+        // Vídeos (renderização automática via localStorage)
+        // - O painel `dashboard.html` salva os vídeos no `localStorage`.
+        // - Esta página lê os dados e renderiza os cards na seção #videos.
+        // - Importante: usamos `textContent` para evitar XSS em título/descrição.
+        // ---------------------------------------------------------------------
+        const VIDEO_STORAGE_KEY = 'flow_videos_v1';
+
+        function safeParseJSON(value, fallback) {
+            try {
+                const parsed = JSON.parse(value);
+                return parsed ?? fallback;
+            } catch {
+                return fallback;
+            }
+        }
+
+        function normalizeYouTubeToEmbedUrl(input) {
+            // Aceita: url "watch?v=", "youtu.be/", ou "youtube.com/embed/"
+            if (!input || typeof input !== 'string') return null;
+            const raw = input.trim();
+            if (!raw) return null;
+
+            // Bloqueia esquemas perigosos
+            if (/^\s*javascript:/i.test(raw)) return null;
+
+            let url;
+            try {
+                url = new URL(raw, window.location.origin);
+            } catch {
+                return null;
+            }
+
+            const host = url.hostname.replace(/^www\./, '').toLowerCase();
+            let videoId = null;
+
+            if (host === 'youtu.be') {
+                videoId = url.pathname.split('/').filter(Boolean)[0] || null;
+            } else if (host === 'youtube.com' || host === 'm.youtube.com') {
+                if (url.pathname.startsWith('/watch')) {
+                    videoId = url.searchParams.get('v');
+                } else if (url.pathname.startsWith('/embed/')) {
+                    videoId = url.pathname.split('/').filter(Boolean)[1] || null;
+                }
+            } else if (host === 'youtube-nocookie.com') {
+                if (url.pathname.startsWith('/embed/')) {
+                    videoId = url.pathname.split('/').filter(Boolean)[1] || null;
+                }
+            }
+
+            if (!videoId || !/^[a-zA-Z0-9_-]{6,}$/.test(videoId)) return null;
+            return `https://www.youtube-nocookie.com/embed/${videoId}`;
+        }
+
+        function normalizeMp4Url(input) {
+            // Aceita URLs absolutas http/https ou caminhos relativos (ex.: /uploads/video.mp4)
+            if (!input || typeof input !== 'string') return null;
+            const raw = input.trim();
+            if (!raw) return null;
+            if (/^\s*javascript:/i.test(raw)) return null;
+
+            // Permite caminho relativo
+            if (raw.startsWith('/') || raw.startsWith('./') || raw.startsWith('../')) {
+                if (!/\.mp4(\?.*)?$/i.test(raw)) return null;
+                return raw;
+            }
+
+            let url;
+            try {
+                url = new URL(raw);
+            } catch {
+                return null;
+            }
+
+            if (!/^https?:$/i.test(url.protocol)) return null;
+            if (!/\.mp4(\?.*)?$/i.test(url.pathname)) return null;
+            return url.toString();
+        }
+
+        function coerceVideosArray(raw) {
+            // Normaliza compatibilidade: aceita {src, kind} ou {url}
+            if (!Array.isArray(raw)) return [];
+            const out = [];
+
+            for (const item of raw) {
+                if (!item || typeof item !== 'object') continue;
+                const title = (item.title ?? '').toString().trim();
+                const description = (item.description ?? '').toString().trim();
+                const kind = (item.kind ?? '').toString().trim().toLowerCase();
+                const src = (item.src ?? item.url ?? '').toString().trim();
+
+                if (!title || !src) continue;
+
+                let normalized = null;
+                let finalKind = kind;
+
+                if (finalKind === 'youtube' || /youtube|youtu\.be/i.test(src)) {
+                    normalized = normalizeYouTubeToEmbedUrl(src);
+                    finalKind = 'youtube';
+                } else {
+                    normalized = normalizeMp4Url(src);
+                    finalKind = 'mp4';
+                }
+
+                if (!normalized) continue;
+
+                out.push({
+                    id: (item.id ?? ((typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()))).toString(),
+                    title: title.slice(0, 80),
+                    description: description.slice(0, 200),
+                    kind: finalKind,
+                    src: normalized,
+                });
+            }
+
+            return out;
+        }
+
+        // ---------------------------------------------------------------------
+        // ALTERAÇÃO (exibição): carrossel estilo banner (hero)
+        // - Mantém o mesmo carregamento/estrutura do `localStorage`.
+        // - Mostra 1 vídeo por vez com setas, bolinhas e autoplay leve.
+        // - Pausa o autoplay quando o usuário interage.
+        // ---------------------------------------------------------------------
+        const __videosCarouselState = {
+            index: 0,
+            videos: [],
+            timer: null,
+            resumeTimer: null,
+            initialized: false,
+            autoplayMs: 6500,
+            resumeAfterMs: 12000,
+            lastUserInteractionAt: 0,
+        };
+
+        function stopVideosAutoplay() {
+            if (__videosCarouselState.timer) {
+                clearInterval(__videosCarouselState.timer);
+                __videosCarouselState.timer = null;
+            }
+            if (__videosCarouselState.resumeTimer) {
+                clearTimeout(__videosCarouselState.resumeTimer);
+                __videosCarouselState.resumeTimer = null;
+            }
+        }
+
+        function markVideosUserInteraction() {
+            __videosCarouselState.lastUserInteractionAt = Date.now();
+            stopVideosAutoplay();
+        }
+
+        function canResumeVideosAutoplay() {
+            const elapsed = Date.now() - (__videosCarouselState.lastUserInteractionAt || 0);
+            return elapsed >= __videosCarouselState.resumeAfterMs;
+        }
+
+        function scheduleVideosAutoplayStart(startFn) {
+            if (__videosCarouselState.resumeTimer) clearTimeout(__videosCarouselState.resumeTimer);
+            const elapsed = Date.now() - (__videosCarouselState.lastUserInteractionAt || 0);
+            const delay = (__videosCarouselState.lastUserInteractionAt ? Math.max(0, __videosCarouselState.resumeAfterMs - elapsed) : 0);
+            __videosCarouselState.resumeTimer = setTimeout(() => {
+                if (document.visibilityState !== 'visible') return;
+                if (!canResumeVideosAutoplay()) return;
+                startFn();
+            }, delay);
+        }
+
+        function pauseAllMp4InCarousel(slidesEl) {
+            if (!slidesEl) return;
+            const videos = slidesEl.querySelectorAll('video');
+            videos.forEach(v => {
+                try { v.pause(); } catch {}
+                try { v.currentTime = v.currentTime; } catch {}
+            });
+        }
+
+        function tryAutoplayActiveMp4(slidesEl, activeIndex) {
+            if (!slidesEl) return;
+            const active = slidesEl.children?.[activeIndex];
+            if (!active) return;
+            const v = active.querySelector('video');
+            if (!v) return;
+            // Autoplay leve (muted para evitar bloqueio)
+            v.muted = true;
+            v.playsInline = true;
+            const playPromise = v.play?.();
+            if (playPromise && typeof playPromise.catch === 'function') playPromise.catch(() => {});
+        }
+
+        function initVideosCarouselOnce(goToFn, startAutoplayFn) {
+            if (__videosCarouselState.initialized) return;
+
+            const carousel = document.getElementById('videos-carousel');
+            const prev = document.getElementById('videos-prev');
+            const next = document.getElementById('videos-next');
+
+            if (!carousel || !prev || !next) return;
+
+            const goTo = goToFn || videosGoTo;
+            const startAutoplay = startAutoplayFn || videosStartAutoplay;
+
+            prev.addEventListener('click', () => {
+                markVideosUserInteraction();
+                goTo(__videosCarouselState.index - 1, true);
+                scheduleVideosAutoplayStart(startAutoplay);
+            });
+
+            next.addEventListener('click', () => {
+                markVideosUserInteraction();
+                goTo(__videosCarouselState.index + 1, true);
+                scheduleVideosAutoplayStart(startAutoplay);
+            });
+
+            // Pausa autoplay ao interagir (mouse, toque, teclado) no carrossel
+            const interactionEvents = ['pointerdown', 'wheel', 'keydown', 'touchstart'];
+            interactionEvents.forEach(evt => {
+                carousel.addEventListener(evt, () => {
+                    markVideosUserInteraction();
+                    scheduleVideosAutoplayStart(startAutoplay);
+                }, { passive: true });
+            });
+
+            // Pausa quando a aba não está visível
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState !== 'visible') {
+                    stopVideosAutoplay();
+                    return;
+                }
+                // Retoma de forma suave (respeita a última interação do usuário)
+                if (canResumeVideosAutoplay()) startAutoplay();
+                else scheduleVideosAutoplayStart(startAutoplay);
+            });
+
+            __videosCarouselState.initialized = true;
+        }
+
+        function videosGetEls() {
+            return {
+                carousel: document.getElementById('videos-carousel'),
+                slides: document.getElementById('videos-slides'),
+                dots: document.getElementById('videos-dots'),
+                prev: document.getElementById('videos-prev'),
+                next: document.getElementById('videos-next'),
+                titleEl: document.getElementById('videos-slide-title'),
+                descEl: document.getElementById('videos-slide-desc'),
+                empty: document.getElementById('videos-empty'),
+            };
+        }
+
+        function videosUpdateOverlay() {
+            const { titleEl, descEl } = videosGetEls();
+            if (!titleEl || !descEl) return;
+            const current = __videosCarouselState.videos[__videosCarouselState.index];
+            if (!current) return;
+            titleEl.textContent = current.title || '';
+            descEl.textContent = current.description || '';
+            if (current.description) descEl.classList.remove('hidden');
+            else descEl.classList.add('hidden');
+        }
+
+        function videosUpdateTransform() {
+            const { slides } = videosGetEls();
+            if (!slides) return;
+            slides.style.transform = `translateX(-${__videosCarouselState.index * 100}%)`;
+        }
+
+        function videosSyncYouTubeIframes() {
+            const { slides } = videosGetEls();
+            if (!slides) return;
+
+            for (let i = 0; i < slides.children.length; i++) {
+                const iframe = slides.children[i]?.querySelector?.('iframe[data-src]');
+                if (!iframe) continue;
+
+                const base = iframe.getAttribute('data-src');
+                if (!base) continue;
+
+                if (i === __videosCarouselState.index) {
+                    const src = `${base}${base.includes('?') ? '&' : '?'}autoplay=1&mute=1&playsinline=1&controls=0&rel=0`;
+                    if (iframe.src !== src) iframe.src = src;
+                } else {
+                    if (iframe.src && !iframe.src.includes('about:blank')) iframe.src = 'about:blank';
+                }
+            }
+        }
+
+        function videosRenderDots() {
+            const { dots } = videosGetEls();
+            if (!dots) return;
+            dots.innerHTML = '';
+
+            const videos = __videosCarouselState.videos;
+            for (let i = 0; i < videos.length; i++) {
+                const dot = document.createElement('button');
+                dot.type = 'button';
+                dot.className = i === __videosCarouselState.index
+                    ? 'w-3.5 h-3.5 rounded-full bg-white shadow'
+                    : 'w-3.5 h-3.5 rounded-full bg-white/40 hover:bg-white/70 transition-colors';
+                dot.setAttribute('aria-label', `Ir para o vídeo ${i + 1}`);
+                dot.addEventListener('click', () => {
+                    markVideosUserInteraction();
+                    videosGoTo(i, true);
+                    scheduleVideosAutoplayStart(videosStartAutoplay);
+                });
+                dots.appendChild(dot);
+            }
+        }
+
+        function videosGoTo(nextIndex, fromUser) {
+            const { slides } = videosGetEls();
+            const videos = __videosCarouselState.videos;
+            if (!slides || !videos.length) return;
+
+            const last = videos.length - 1;
+            let idx = nextIndex;
+            if (idx < 0) idx = last;
+            if (idx > last) idx = 0;
+
+            __videosCarouselState.index = idx;
+            videosUpdateTransform();
+            videosUpdateOverlay();
+            videosRenderDots();
+
+            // Autoplay YouTube apenas no slide atual (para evitar tocar vários ao mesmo tempo)
+            videosSyncYouTubeIframes();
+
+            // Para MP4: tenta autoplay leve somente no slide ativo (e pausa os demais)
+            pauseAllMp4InCarousel(slides);
+            tryAutoplayActiveMp4(slides, __videosCarouselState.index);
+        }
+
+        function videosStartAutoplay() {
+            stopVideosAutoplay();
+            const videos = __videosCarouselState.videos;
+            if (videos.length < 2) return;
+            if (document.visibilityState !== 'visible') return;
+            if (!canResumeVideosAutoplay()) return;
+
+            __videosCarouselState.timer = setInterval(() => {
+                videosGoTo(__videosCarouselState.index + 1, false);
+            }, __videosCarouselState.autoplayMs);
+        }
+
+        function renderVideosFromStorage() {
+            const { carousel, slides, dots, prev, next, titleEl, descEl, empty } = videosGetEls();
+            if (!carousel || !slides || !dots || !prev || !next || !titleEl || !descEl || !empty) return;
+
+            const stored = safeParseJSON(localStorage.getItem(VIDEO_STORAGE_KEY), []);
+            const videos = coerceVideosArray(stored);
+
+            __videosCarouselState.videos = videos;
+            stopVideosAutoplay();
+            slides.innerHTML = '';
+            dots.innerHTML = '';
+
+            if (!videos.length) {
+                carousel.classList.add('hidden');
+                empty.classList.remove('hidden');
+                stopVideosAutoplay();
+                return;
+            }
+
+            empty.classList.add('hidden');
+            carousel.classList.remove('hidden');
+
+            // Mantém o índice dentro do range atual
+            if (__videosCarouselState.index >= videos.length) __videosCarouselState.index = 0;
+            if (__videosCarouselState.index < 0) __videosCarouselState.index = 0;
+
+            // Cria slides
+            for (const video of videos) {
+                const slide = document.createElement('div');
+                slide.className = 'relative min-w-full h-full';
+
+                const media = document.createElement('div');
+                media.className = 'absolute inset-0 overflow-hidden bg-black';
+
+                if (video.kind === 'youtube') {
+                    const iframe = document.createElement('iframe');
+                    // FULL SCREEN + "cover" (reduz barras pretas): amplia e centraliza o iframe
+                    iframe.className = 'absolute left-1/2 top-1/2 w-[120%] h-[120%] -translate-x-1/2 -translate-y-1/2 scale-110';
+                    // Autoplay (sem tocar todos ao mesmo tempo): guardamos o src e só ativamos no slide atual.
+                    iframe.src = 'about:blank';
+                    iframe.setAttribute('data-src', video.src);
+                    iframe.title = video.title;
+                    iframe.loading = 'lazy';
+                    iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+                    iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+                    iframe.allowFullscreen = true;
+                    media.appendChild(iframe);
+                } else {
+                    const el = document.createElement('video');
+                    el.className = 'w-full h-full object-cover';
+                    el.src = video.src;
+                    el.controls = true;
+                    el.muted = true;
+                    el.loop = true;
+                    el.preload = 'metadata';
+                    el.playsInline = true;
+                    media.appendChild(el);
+                }
+
+                slide.appendChild(media);
+                slides.appendChild(slide);
+            }
+
+            // init listeners once (prev/next/pause logic)
+            initVideosCarouselOnce(videosGoTo, videosStartAutoplay);
+
+            // UI: esconde controles se houver 1 vídeo
+            const hasMany = videos.length > 1;
+            prev.classList.toggle('hidden', !hasMany);
+            next.classList.toggle('hidden', !hasMany);
+            dots.classList.toggle('hidden', !hasMany);
+
+            // Primeira renderização
+            videosGoTo(__videosCarouselState.index, true);
+            videosStartAutoplay();
+        }
+
+        function initPage() {
+            renderVideosFromStorage();
             renderDemoApp();
             initLegalNotice();
             initCookieBar();
+            initMobileNav();
+            initAuthNav();
+        }
+
+        async function initAuthNav() {
+            const desktopBtn = document.getElementById('nav-auth-btn');
+            const mobileBtn = document.getElementById('nav-auth-btn-mobile');
+            const desktopSignup = document.getElementById('nav-signup-btn');
+            const mobileSignup = document.getElementById('nav-signup-btn-mobile');
+            if (!desktopBtn && !mobileBtn && !desktopSignup && !mobileSignup) return;
+
+            try {
+                const resp = await fetch('access/auth_status.php', { cache: 'no-store', credentials: 'same-origin' });
+                if (!resp.ok) return;
+                const data = await resp.json();
+                if (!data || typeof data !== 'object') return;
+
+                const authenticated = !!data.authenticated;
+                const href = authenticated ? (data.edit_profile_url || '') : (data.login_url || '');
+                const label = authenticated ? 'Editar perfil' : 'Login';
+                if (!href) return;
+
+                [desktopSignup, mobileSignup].filter(Boolean).forEach((btn) => {
+                    btn.classList.toggle('hidden', authenticated);
+                    btn.setAttribute('aria-hidden', authenticated ? 'true' : 'false');
+                });
+
+                [desktopBtn, mobileBtn].filter(Boolean).forEach((btn) => {
+                    btn.textContent = label;
+                    btn.setAttribute('href', href);
+                });
+            } catch (e) {
+                // Mantém o fallback padrão ("Entrar") se o endpoint não responder.
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initPage, { once: true });
+        } else {
+            initPage();
+        }
+
+        // Atualiza automaticamente se o `dashboard.html` modificar o localStorage em outra aba/janela
+        window.addEventListener('storage', (event) => {
+            if (event && event.key === VIDEO_STORAGE_KEY) {
+                renderVideosFromStorage();
+            }
         });
     </script>
 </body>

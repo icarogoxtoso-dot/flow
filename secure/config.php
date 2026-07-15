@@ -52,7 +52,11 @@ function appConfig(): array
         return $config;
     }
 
-    $basePath = trim((string) envValue('APP_BASE_PATH', '/Flow(1)'));
+    $basePath = envValue('APP_BASE_PATH');
+    $basePath = is_string($basePath) ? trim($basePath) : '';
+    if ($basePath === '') {
+        $basePath = detectAppBasePath();
+    }
     $basePath = $basePath === '/' ? '' : rtrim($basePath, '/');
 
     $config = [
@@ -72,6 +76,57 @@ function appConfig(): array
     ];
 
     return $config;
+}
+
+function detectAppBasePath(): string
+{
+    $scriptName = (string) ($_SERVER['SCRIPT_NAME'] ?? '');
+    if ($scriptName === '') {
+        return '';
+    }
+
+    $scriptName = '/' . ltrim(str_replace('\\', '/', $scriptName), '/');
+
+    foreach (['/access/', '/secure/'] as $marker) {
+        $pos = strpos($scriptName, $marker);
+        if ($pos !== false && $pos > 0) {
+            return substr($scriptName, 0, $pos);
+        }
+    }
+
+    $dir = rtrim(str_replace('\\', '/', dirname($scriptName)), '/');
+    if ($dir === '' || $dir === '.') {
+        return '';
+    }
+
+    foreach (['/access', '/secure'] as $suffix) {
+        if (str_ends_with($dir, $suffix)) {
+            $dir = substr($dir, 0, -strlen($suffix));
+            $dir = rtrim($dir, '/');
+            break;
+        }
+    }
+
+    return $dir === '/' ? '' : $dir;
+}
+
+function isLocalEnvironment(): bool
+{
+    $host = strtolower(trim((string) ($_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? '')));
+    if ($host !== '') {
+        $host = explode(':', $host, 2)[0];
+    }
+
+    if (in_array($host, ['localhost', '127.0.0.1', '::1'], true)) {
+        return true;
+    }
+
+    $appUrl = strtolower(trim((string) envValue('APP_URL', '')));
+    if ($appUrl !== '' && (str_contains($appUrl, 'localhost') || str_contains($appUrl, '127.0.0.1'))) {
+        return true;
+    }
+
+    return false;
 }
 
 function applySecurityHeaders(): void
@@ -145,11 +200,30 @@ function appPath(string $path = '/'): string
 function appBaseUrl(): string
 {
     $cfg = appConfig();
+    $trustProxy = envBool('TRUST_PROXY', false);
+    $scheme = isHttpsRequest() ? 'https' : 'http';
+
+    $hostHeader = '';
+    if ($trustProxy) {
+        $forwardedHost = trim((string) ($_SERVER['HTTP_X_FORWARDED_HOST'] ?? ''));
+        if ($forwardedHost !== '') {
+            $hostHeader = trim((string) (explode(',', $forwardedHost, 2)[0] ?? ''));
+        }
+    }
+    if ($hostHeader === '') {
+        $hostHeader = (string) ($_SERVER['HTTP_HOST'] ?? '');
+    }
+    $hostHeader = trim($hostHeader) !== '' ? trim($hostHeader) : 'localhost';
+
+    // Em ambiente local (localhost/127.0.0.1), priorize o host/porta atuais
+    // para evitar links/callbacks com porta errada quando APP_URL aponta para producao.
+    if (isLocalEnvironment()) {
+        return $scheme . '://' . $hostHeader;
+    }
+
     if ($cfg['app_url'] !== '') {
         return $cfg['app_url'];
     }
 
-    $scheme = isHttpsRequest() ? 'https' : 'http';
-    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-    return $scheme . '://' . $host;
+    return $scheme . '://' . $hostHeader;
 }

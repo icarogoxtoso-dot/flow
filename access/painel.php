@@ -3,8 +3,13 @@
  * CONFIGURACAO DO BANCO DE DADOS
  * Ajuste os valores conforme seu ambiente.
  */
-session_start();
+require_once __DIR__ . '/../secure/auth.php';
 require_once __DIR__ . '/../secure/config.php';
+startSecureSession();
+
+$isLoggedIn = isAuthenticated();
+$profileEditUrl = appPath('/secure/save_profile.php');
+$loginUrl = appPath('/access/login.php') . '?next=' . rawurlencode($profileEditUrl);
 if (empty($_SESSION['feedback_csrf']) || !is_string($_SESSION['feedback_csrf'])) {
     $_SESSION['feedback_csrf'] = bin2hex(random_bytes(32));
 }
@@ -258,17 +263,17 @@ try {
     <meta name="twitter:description" content="Encontre profissionais de manutenção na sua região.">
     <meta name="twitter:image" content="https://clubedosparceiros.cloud/img/logo.png">
 
-    <meta name="theme-color" content="#1e3a8a">
+    <meta name="theme-color" content="#1A3D63">
     <title>Busca de Profissionais - PHP Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="icon" href="/img/logomenor.png" type="image/png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="../assets/theme.css">
+    <link rel="stylesheet" href="../assets/theme.css?v=20260513">
     <style>
         body { background-color: #f0f4f8; font-family: 'Inter', sans-serif; }
         .card-shadow { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); }
-        .bg-navy { background-color: #1e3a8a; }
+        .bg-navy { background-color: var(--flow-primary); }
         .dot-online { height: 8px; width: 8px; background-color: #10b981; border-radius: 50%; display: inline-block; margin-left: 5px; }
         .sidebar-sticky { position: sticky; top: 1.5rem; }
         .result-card {
@@ -356,7 +361,7 @@ try {
             width: 44px;
             height: 44px;
             border-radius: 9px;
-            background: #1e3a8a;
+            background: var(--flow-primary);
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -369,7 +374,7 @@ try {
             padding: .38rem;
         }
         .brand-title {
-            color: #1e3a8a;
+            color: var(--flow-primary);
             font-size: 1.05rem;
             font-weight: 800;
             line-height: 1;
@@ -407,17 +412,52 @@ try {
     </style>
 </head>
 <body class="min-h-screen text-slate-900 bg-slate-50 selection:bg-blue-200 selection:text-blue-900">
-    <nav class="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-100">
-        <div class="container mx-auto px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center gap-2">
-            <div class="flex items-center gap-2 text-blue-900 font-black text-base sm:text-xl min-w-0">
-                <div class="bg-blue-900 text-white p-1.5 rounded-lg">
-                    <img src="../img/logomenor.png" alt="Logo Clube dos Parceiros" class="h-10 w-auto rounded-md object-contain">
-                </div>
-                <span class="truncate">Clube dos Parceiros</span>
-            </div>
-                    <a href="<?php echo htmlspecialchars(appPath('/index.html'), ENT_QUOTES, 'UTF-8'); ?>" class="px-3 sm:px-4 py-2 rounded-lg font-semibold transition-all duration-300 transform hover:-translate-y-1 shadow-md flex items-center justify-center gap-2 bg-white text-blue-900 border-2 border-blue-900 hover:bg-blue-50 text-xs sm:text-sm whitespace-nowrap">
-                Página inicial
+    <nav class="fixed top-0 w-full z-50 bg-blue-900/95 text-white backdrop-blur-md border-b border-blue-800/60">
+        <div class="container mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between gap-3">
+            <a href="<?php echo htmlspecialchars(appPath('/index.html'), ENT_QUOTES, 'UTF-8'); ?>" class="shrink-0 flex items-center gap-3 text-white font-black text-base sm:text-xl min-w-0">
+                <img src="../img/logomenor.png" alt="Logo Clube dos Parceiros" class="h-14 sm:h-16 w-auto object-contain">
+                <span class="truncate text-sm sm:text-xl max-w-[170px] sm:max-w-none">Clube dos Parceiros</span>
             </a>
+
+            <div class="hidden md:flex shrink-0 items-center gap-3">
+                <a href="<?php echo htmlspecialchars(appPath('/index.html'), ENT_QUOTES, 'UTF-8'); ?>" class="flow-btn flow-btn-light px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-semibold transition-all duration-300 transform hover:-translate-y-1 shadow-md flex items-center justify-center gap-2 border-2 text-xs sm:text-sm whitespace-nowrap">
+                    Página inicial
+                </a>
+                <?php if ($isLoggedIn): ?>
+                    <a href="<?php echo htmlspecialchars($profileEditUrl, ENT_QUOTES, 'UTF-8'); ?>" class="flow-btn flow-btn-light px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-semibold transition-all duration-300 transform hover:-translate-y-1 shadow-md flex items-center justify-center gap-2 border-2 text-xs sm:text-sm whitespace-nowrap">
+                        Editar perfil
+                    </a>
+                <?php else: ?>
+                    <a href="<?php echo htmlspecialchars($loginUrl, ENT_QUOTES, 'UTF-8'); ?>" class="flow-btn flow-btn-light px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-semibold transition-all duration-300 transform hover:-translate-y-1 shadow-md flex items-center justify-center gap-2 border-2 text-xs sm:text-sm whitespace-nowrap">
+                        Login
+                    </a>
+                <?php endif; ?>
+            </div>
+
+            <button id="nav-toggle" type="button" class="hamburger md:hidden text-white/90 hover:text-white transition" aria-label="Abrir menu" aria-controls="mobile-menu" aria-expanded="false">
+                <span class="hamburger-lines" aria-hidden="true">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </span>
+            </button>
+        </div>
+
+        <div id="mobile-menu" class="md:hidden hidden px-4 sm:px-6 pb-4 pt-2 bg-blue-900 border-t border-blue-800/60">
+            <div class="grid grid-cols-1 gap-2">
+                <a href="<?php echo htmlspecialchars(appPath('/index.html'), ENT_QUOTES, 'UTF-8'); ?>" class="flow-btn flow-btn-light px-3 py-2 rounded-lg font-bold border-2 transition text-center">
+                    Página inicial
+                </a>
+                <?php if ($isLoggedIn): ?>
+                    <a href="<?php echo htmlspecialchars($profileEditUrl, ENT_QUOTES, 'UTF-8'); ?>" class="flow-btn flow-btn-light px-3 py-2 rounded-lg font-bold border-2 transition text-center">
+                        Editar perfil
+                    </a>
+                <?php else: ?>
+                    <a href="<?php echo htmlspecialchars($loginUrl, ENT_QUOTES, 'UTF-8'); ?>" class="flow-btn flow-btn-light px-3 py-2 rounded-lg font-bold border-2 transition text-center">
+                        Login
+                    </a>
+                <?php endif; ?>
+            </div>
         </div>
     </nav>
     <div class="pt-28 md:pt-32 px-4 md:px-8 pb-6 md:pb-8">
@@ -506,6 +546,41 @@ try {
         const initialLocation = (urlParams.get('location') || '').trim();
         const initialSort = (urlParams.get('sort') || 'best_rating').trim();
         let toastTimer = null;
+
+        (function initMobileNav() {
+            const toggle = document.getElementById('nav-toggle');
+            const menu = document.getElementById('mobile-menu');
+            if (!toggle || !menu) return;
+
+            const closeMenu = () => {
+                menu.classList.add('hidden');
+                toggle.setAttribute('aria-expanded', 'false');
+                toggle.classList.remove('is-open');
+            };
+
+            toggle.addEventListener('click', () => {
+                const isOpen = !menu.classList.contains('hidden');
+                if (isOpen) closeMenu();
+                else {
+                    menu.classList.remove('hidden');
+                    toggle.setAttribute('aria-expanded', 'true');
+                    toggle.classList.add('is-open');
+                }
+            });
+
+            menu.addEventListener('click', (event) => {
+                const target = event.target;
+                if (target && target.closest && target.closest('a')) closeMenu();
+            });
+
+            window.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') closeMenu();
+            });
+
+            window.addEventListener('resize', () => {
+                if (window.matchMedia('(min-width: 768px)').matches) closeMenu();
+            });
+        })();
 
         function showToast(message) {
             appToast.textContent = message;
@@ -730,4 +805,3 @@ INSERT INTO profissionais (nome, online, bairro, cidade, tags, desde, nota, what
 ('Mariana Costa', 0, 'Vila Madalena', 'São Paulo', 'Hidráulica, Gás', 2018, 0.0, '5511988888888'),
 ('Carlos Alberto', 1, 'Centro', 'Osasco', 'Refrigeração, Ar-condicionado', 2020, 0.0, '5511977777777');
 -->
-

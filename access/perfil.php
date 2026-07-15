@@ -1,6 +1,7 @@
 ﻿<?php
-session_start();
+require_once __DIR__ . '/../secure/auth.php';
 require_once __DIR__ . '/../secure/config.php';
+startSecureSession();
 
 $cfg = appConfig();
 $host = $cfg['db_host'];
@@ -22,6 +23,8 @@ try {
     die('Erro na conexao: ' . $e->getMessage());
 }
 
+$viewerUserId = currentUserId();
+
 $publicId = trim((string) ($_GET['p'] ?? $_GET['public_id'] ?? ''));
 $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 
@@ -39,6 +42,9 @@ $pro = $stmt ? $stmt->fetch() : false;
 if (!$pro) {
     die('Profissional não encontrado.');
 }
+
+$profileOwnerId = (int) ($pro['user_id'] ?? 0);
+$viewerIsOwner = $viewerUserId !== null && $profileOwnerId > 0 && (int) $viewerUserId === $profileOwnerId;
 
 $name = trim((string) ($pro['nome'] ?? $pro['nome_completo'] ?? 'Profissional'));
 $photo = trim((string) ($pro['foto_perfil'] ?? ''));
@@ -72,6 +78,30 @@ $fotosRaw = (string) ($pro['fotos_trabalhos'] ?? $pro['fotos_trabalho'] ?? '[]')
 $fotos_trabalho = json_decode($fotosRaw, true);
 if (!is_array($fotos_trabalho)) {
     $fotos_trabalho = [];
+}
+
+$marketplaceProducts = [];
+$marketRaw = (string) ($pro['marketplace_products'] ?? '[]');
+$marketDecoded = json_decode($marketRaw, true);
+if (is_array($marketDecoded)) {
+    foreach ($marketDecoded as $item) {
+        if (!is_array($item)) {
+            continue;
+        }
+        $title = trim((string) ($item['title'] ?? ''));
+        if ($title === '') {
+            continue;
+        }
+        $marketplaceProducts[] = [
+            'title' => $title,
+            'price' => trim((string) ($item['price'] ?? '')),
+            'url' => trim((string) ($item['url'] ?? '')),
+            'image' => trim((string) ($item['image'] ?? '')),
+        ];
+        if (count($marketplaceProducts) >= 4) {
+            break;
+        }
+    }
 }
 
 $anoAtual = (int) date('Y');
@@ -135,13 +165,13 @@ try {
     <meta name="twitter:description" content="Confira serviços e formas de contato no Clube dos Parceiros.">
     <meta name="twitter:image" content="https://clubedosparceiros.cloud/img/logo.png">
 
-    <meta name="theme-color" content="#1e3a8a">
+    <meta name="theme-color" content="#1A3D63">
     <title>Perfil - <?php echo htmlspecialchars($name, ENT_QUOTES, 'UTF-8'); ?></title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="icon" href="/img/logomenor.png" type="image/png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="../assets/theme.css">
+    <link rel="stylesheet" href="../assets/theme.css?v=20260513">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
         .pro-card { background: white; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0; }
@@ -155,7 +185,7 @@ try {
             width: 44px;
             height: 44px;
             border-radius: 10px;
-            background: #1e3a8a;
+            background: var(--flow-primary);
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -171,7 +201,7 @@ try {
         }
         .brand-title {
             font-weight: 800;
-            color: #1e3a8a;
+            color: var(--flow-primary);
             letter-spacing: -0.01em;
             font-size: 1.05rem;
             line-height: 1.1;
@@ -229,6 +259,15 @@ try {
             background: rgba(59, 130, 246, 0.14);
             color: #93c5fd;
         }
+        .metric-icon > svg,
+        .metric-icon > i,
+        .metric-icon svg,
+        .metric-icon i {
+            width: 1.25rem !important;
+            height: 1.25rem !important;
+            display: block;
+            flex: 0 0 auto;
+        }
         .metric-label {
             color: #94a3b8;
             font-size: 0.78rem;
@@ -246,6 +285,152 @@ try {
         .metric-subtext {
             color: #cbd5e1;
             font-size: 0.92rem;
+        }
+        .mp-panel {
+            background: #ffffff;
+            border: 1px solid rgba(226, 232, 240, 0.95);
+            border-radius: 1.2rem;
+            box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+            overflow: hidden;
+        }
+        .mp-panel-header {
+            padding: 1.25rem 1.25rem 0.75rem;
+        }
+        .mp-panel-body {
+            padding: 0.75rem 1.25rem 1.25rem;
+        }
+        .mp-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 1rem;
+        }
+        .mp-item {
+            border: 1px solid rgba(226, 232, 240, 0.95);
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+            border-radius: 1rem;
+            padding: 1rem;
+            transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .mp-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 30px rgba(15, 23, 42, 0.10);
+            border-color: rgba(148, 163, 184, 0.85);
+        }
+        .mp-bubble {
+            width: 116px;
+            height: 116px;
+            border-radius: 1.1rem;
+            background: var(--flow-primary);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 14px;
+            font-weight: 800;
+            letter-spacing: -0.01em;
+            box-shadow: 0 14px 30px rgba(26, 61, 99, 0.18);
+            transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+            text-decoration: none;
+        }
+        .mp-bubble-link { cursor: pointer; }
+        .mp-item:hover .mp-bubble {
+            transform: translateY(-2px);
+            box-shadow: 0 18px 38px rgba(26, 61, 99, 0.22);
+            filter: brightness(1.04);
+        }
+        .mp-bubble span {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-wrap: balance;
+            line-height: 1.15;
+            font-size: 0.98rem;
+        }
+        .mp-bubble img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 1.1rem;
+        }
+        .mp-title {
+            font-size: 1.02rem;
+            font-weight: 900;
+            color: #0f172a;
+            margin-top: 0.75rem;
+            text-align: center;
+            line-height: 1.15;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .mp-price {
+            font-size: 0.9rem;
+            color: #475569;
+            text-align: center;
+            margin-top: 0.15rem;
+            font-weight: 700;
+        }
+        .mp-actions {
+            margin-top: 0.7rem;
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+        .mp-action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            padding: 0.45rem 0.7rem;
+            border-radius: 0.7rem;
+            font-size: 0.85rem;
+            font-weight: 800;
+            border: 1px solid rgba(226, 232, 240, 0.95);
+            background: #ffffff;
+            color: #0f172a;
+            transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease;
+            flex: 1 1 auto;
+            min-width: 118px;
+        }
+        .mp-action-btn:hover {
+            background: #f8fafc;
+            box-shadow: 0 10px 22px rgba(15, 23, 42, 0.10);
+            transform: translateY(-1px);
+        }
+        .mp-action-btn--wa {
+            background: rgba(34, 197, 94, 0.12);
+            border-color: rgba(34, 197, 94, 0.22);
+            color: #047857;
+        }
+        .mp-action-btn--wa:hover {
+            background: rgba(34, 197, 94, 0.16);
+        }
+        @media (max-width: 640px) {
+            .mp-panel-header { padding: 1.1rem 1.1rem 0.65rem; }
+            .mp-panel-body { padding: 0.65rem 1.1rem 1.1rem; }
+            .mp-grid {
+                display: flex;
+                gap: 0.9rem;
+                overflow-x: auto;
+                padding-bottom: 0.25rem;
+                scroll-snap-type: x mandatory;
+                -webkit-overflow-scrolling: touch;
+            }
+            .mp-item {
+                flex: 0 0 auto;
+                width: min(240px, calc(100vw - 4.2rem));
+                scroll-snap-align: start;
+            }
+            .mp-bubble { width: 104px; height: 104px; border-radius: 1rem; }
+            .mp-bubble img { border-radius: 1rem; }
         }
         .gallery-grid {
             display: grid;
@@ -357,21 +542,38 @@ try {
 
     <div id="toast" class="toast text-sm font-medium"></div>
 
-    <nav class="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-100">
-        <div class="container mx-auto px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center gap-2">
-            <div class="flex items-center gap-2 text-blue-900 font-black text-base sm:text-xl min-w-0">
-                <div class="bg-blue-900 text-white p-1.5 rounded-lg">
-                    <img src="../img/logomenor.png" alt="Logo Clube dos Parceiros" class="h-10 w-auto rounded-md object-contain">
-                </div>
-                <span class="truncate">Clube dos Parceiros</span>
-            </div>
-            <a href="<?php echo htmlspecialchars(appPath('/access/painel.php'), ENT_QUOTES, 'UTF-8'); ?>" class="px-3 sm:px-4 py-2 rounded-lg font-semibold transition-all duration-300 transform hover:-translate-y-1 shadow-md flex items-center justify-center gap-2 bg-white text-blue-900 border-2 border-blue-900 hover:bg-blue-50 text-xs sm:text-sm whitespace-nowrap">
-                Voltar ao painel
+    <nav class="fixed top-0 w-full z-50 bg-blue-900/95 text-white backdrop-blur-md border-b border-blue-800/60">
+        <div class="container mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between gap-3">
+            <a href="<?php echo htmlspecialchars(appPath('/index.html'), ENT_QUOTES, 'UTF-8'); ?>" class="shrink-0 flex items-center gap-3 text-white font-black text-base sm:text-xl min-w-0">
+                <img src="../img/logomenor.png" alt="Logo Clube dos Parceiros" class="h-14 sm:h-16 w-auto object-contain">
+                <span class="truncate text-sm sm:text-xl max-w-[170px] sm:max-w-none">Clube dos Parceiros</span>
             </a>
+
+            <div class="hidden md:flex shrink-0 flex-wrap items-center justify-end gap-2 sm:gap-3">
+                <a href="<?php echo htmlspecialchars(appPath('/access/painel.php'), ENT_QUOTES, 'UTF-8'); ?>" class="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-semibold transition-all duration-300 transform hover:-translate-y-1 shadow-md flex items-center justify-center gap-2 bg-white text-blue-900 border-2 border-white hover:bg-blue-50 hover:shadow-lg hover:shadow-black/10 text-xs sm:text-sm whitespace-nowrap">
+                    Voltar ao painel
+                </a>
+            </div>
+
+            <button id="nav-toggle" type="button" class="hamburger md:hidden text-white/90 hover:text-white transition" aria-label="Abrir menu" aria-controls="mobile-menu" aria-expanded="false">
+                <span class="hamburger-lines" aria-hidden="true">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </span>
+            </button>
+        </div>
+
+        <div id="mobile-menu" class="md:hidden hidden px-4 sm:px-6 pb-4 pt-2 bg-blue-900 border-t border-blue-800/60">
+            <div class="grid grid-cols-1 gap-2">
+                <a href="<?php echo htmlspecialchars(appPath('/access/painel.php'), ENT_QUOTES, 'UTF-8'); ?>" class="px-3 py-2 rounded-lg font-bold border-2 transition text-center bg-white text-blue-900 border-white hover:bg-blue-50 hover:shadow-lg hover:shadow-black/10">
+                    Voltar ao painel
+                </a>
+            </div>
         </div>
     </nav>
 
-    <main class="max-w-6xl mx-auto px-4 pt-24 pb-8 space-y-6 mb-20">
+    <main class="max-w-6xl mx-auto px-4 pt-28 pb-8 space-y-6 mb-20">
         <section class="pro-card p-4 sm:p-6">
             <div class="flex flex-col md:flex-row gap-5 md:gap-6 items-start">
                 <div class="relative self-center md:self-start">
@@ -417,6 +619,89 @@ try {
                 </div>
             </div>
         </section>
+
+        <?php if (!empty($marketplaceProducts)): ?>
+            <section class="mp-panel p-5 sm:p-7">
+                <div class="mp-panel-header flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div>
+                        <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">Loja do <?php echo htmlspecialchars($name, ENT_QUOTES, 'UTF-8'); ?></h2>
+                        <p class="text-sm text-slate-600 mt-1">Produtos e serviços cadastrados pelo profissional.</p>
+                    </div>
+                    <?php if ($viewerIsOwner): ?>
+                        <a href="<?php echo htmlspecialchars(appPath('/secure/save_profile.php'), ENT_QUOTES, 'UTF-8'); ?>" class="inline-flex items-center justify-center px-4 py-2 rounded-xl border border-slate-200 text-slate-700 font-semibold text-sm hover:bg-slate-50">
+                            Ver/editar produtos
+                        </a>
+                    <?php endif; ?>
+                </div>
+
+                <div class="mp-panel-body">
+                <div class="mp-grid">
+                    <?php foreach ($marketplaceProducts as $product): ?>
+                        <?php
+                            $pTitle = (string) ($product['title'] ?? '');
+                            $pPrice = (string) ($product['price'] ?? '');
+                            $pUrl = (string) ($product['url'] ?? '');
+                            $pImg = (string) ($product['image'] ?? '');
+                            $waMessage = 'Olá! Tenho interesse em "' . $pTitle . "\".\nPode me passar valores, prazo e disponibilidade?";
+                            $waLink = $whatsUrl !== '' ? ($whatsUrl . '?text=' . rawurlencode($waMessage)) : '';
+                            $priceDigits = preg_replace('/\\D+/', '', $pPrice);
+                            $priceDisplay = '';
+                            if (is_string($priceDigits) && $priceDigits !== '') {
+                                $priceDisplay = 'R$: ' . $priceDigits . ',00';
+                            } elseif (trim($pPrice) !== '') {
+                                $priceDisplay = 'R$: ' . trim($pPrice);
+                            }
+                        ?>
+                        <div class="mp-item">
+                                <?php if ($pUrl !== ''): ?>
+                                    <a class="mp-bubble mp-bubble-link" href="<?php echo htmlspecialchars($pUrl, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener" aria-label="Abrir <?php echo htmlspecialchars($pTitle, ENT_QUOTES, 'UTF-8'); ?>">
+                                <?php else: ?>
+                                    <div class="mp-bubble">
+                                <?php endif; ?>
+                                    <?php if ($pImg !== ''): ?>
+                                        <img src="<?php echo htmlspecialchars($pImg, ENT_QUOTES, 'UTF-8'); ?>" alt="<?php echo htmlspecialchars($pTitle, ENT_QUOTES, 'UTF-8'); ?>">
+                                    <?php else: ?>
+                                        <span><?php echo htmlspecialchars($pTitle, ENT_QUOTES, 'UTF-8'); ?></span>
+                                    <?php endif; ?>
+                                <?php if ($pUrl !== ''): ?>
+                                    </a>
+                                <?php else: ?>
+                                    </div>
+                                <?php endif; ?>
+                                <div class="mp-title"><?php echo htmlspecialchars($pTitle, ENT_QUOTES, 'UTF-8'); ?></div>
+                                <?php if ($priceDisplay !== ''): ?>
+                                    <div class="mp-price"><?php echo htmlspecialchars($priceDisplay, ENT_QUOTES, 'UTF-8'); ?></div>
+                                <?php endif; ?>
+                                <div class="mp-actions">
+                                    <?php if ($waLink !== ''): ?>
+                                        <a class="mp-action-btn mp-action-btn--wa" href="<?php echo htmlspecialchars($waLink, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener">
+                                            Saber mais
+                                        </a>
+                                    <?php endif; ?>
+                                    <?php if ($pUrl !== ''): ?>
+                                        <a class="mp-action-btn" href="<?php echo htmlspecialchars($pUrl, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener">
+                                            Ver produto
+                                        </a>
+                                    <?php endif; ?>
+                                </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+                </div>
+            </section>
+        <?php elseif ($viewerIsOwner): ?>
+            <section class="mp-panel">
+                <div class="mp-panel-header flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div>
+                        <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">Sua loja</h2>
+                        <p class="text-sm text-slate-600 mt-1">Adicione produtos/serviços para aparecerem no seu perfil público.</p>
+                    </div>
+                    <a href="<?php echo htmlspecialchars(appPath('/secure/save_profile.php'), ENT_QUOTES, 'UTF-8'); ?>" class="inline-flex items-center justify-center px-4 py-2 rounded-xl border border-slate-200 text-slate-700 font-semibold text-sm hover:bg-slate-50">
+                        Cadastrar produtos
+                    </a>
+                </div>
+            </section>
+        <?php endif; ?>
 
         <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
             <div class="lg:col-span-3 space-y-6">
@@ -690,6 +975,41 @@ try {
     <script>
         lucide.createIcons();
 
+        (function initMobileNav() {
+            const toggle = document.getElementById('nav-toggle');
+            const menu = document.getElementById('mobile-menu');
+            if (!toggle || !menu) return;
+
+            const closeMenu = () => {
+                menu.classList.add('hidden');
+                toggle.setAttribute('aria-expanded', 'false');
+                toggle.classList.remove('is-open');
+            };
+
+            toggle.addEventListener('click', () => {
+                const isOpen = !menu.classList.contains('hidden');
+                if (isOpen) closeMenu();
+                else {
+                    menu.classList.remove('hidden');
+                    toggle.setAttribute('aria-expanded', 'true');
+                    toggle.classList.add('is-open');
+                }
+            });
+
+            menu.addEventListener('click', (event) => {
+                const target = event.target;
+                if (target && target.closest && target.closest('a')) closeMenu();
+            });
+
+            window.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') closeMenu();
+            });
+
+            window.addEventListener('resize', () => {
+                if (window.matchMedia('(min-width: 768px)').matches) closeMenu();
+            });
+        })();
+
         function showPhone(phone) {
             document.getElementById('txt-phone').innerText = phone;
             document.getElementById('btn-phone').innerText = 'Telefone Exibido';
@@ -844,5 +1164,3 @@ try {
     </script>
 </body>
 </html>
-
-

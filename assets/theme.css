@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Archivo+Black&display=swap');
 
 /* Tema visual compartilhado entre as paginas principais */
 :root {
@@ -7,15 +7,159 @@
     --flow-text: #0f172a;
     --flow-muted: #64748b;
     --flow-border: #d9e2ec;
-    --flow-primary: #1e3a8a;
-    --flow-primary-hover: #1e40af;
+    --flow-primary: #1A3D63;
+    --flow-primary-hover: #163454;
     --flow-primary-soft: #eff6ff;
+    --flow-font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+    --flow-font-display: 'Archivo Black', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
 }
 
 body {
-    font-family: 'Inter', sans-serif;
+    font-family: var(--flow-font-body);
     background: var(--flow-bg);
     color: var(--flow-text);
+}
+
+.archivo-black-regular {
+    font-family: "Archivo Black", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.brand-title,
+.flow-display,
+.flow-heading {
+    font-family: var(--flow-font-display);
+    font-weight: 400;
+}
+
+.flow-heading {
+    font-weight: 400 !important;
+    letter-spacing: -0.015em;
+}
+
+.hamburger {
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    transition: background .18s ease, transform .18s ease;
+}
+
+.hamburger:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.hamburger-lines {
+    width: 22px;
+    height: 16px;
+    position: relative;
+    display: block;
+}
+
+.hamburger-lines span {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: currentColor;
+    border-radius: 2px;
+    transition: transform .22s ease, top .22s ease, opacity .18s ease;
+}
+
+.hamburger-lines span:nth-child(1) { top: 0; }
+.hamburger-lines span:nth-child(2) { top: 7px; }
+.hamburger-lines span:nth-child(3) { top: 14px; }
+
+.hamburger.is-open .hamburger-lines span:nth-child(1) { top: 7px; transform: rotate(45deg); }
+.hamburger.is-open .hamburger-lines span:nth-child(2) { opacity: 0; }
+.hamburger.is-open .hamburger-lines span:nth-child(3) { top: 7px; transform: rotate(-45deg); }
+
+/* Unifica tons "azul" do Tailwind (CDN) para uma única cor */
+.bg-blue-900,
+.bg-blue-700,
+.bg-blue-600,
+.bg-blue-500 {
+    background-color: var(--flow-primary) !important;
+}
+
+.bg-blue-900\/95 {
+    background-color: var(--flow-primary) !important;
+}
+
+.hover\:bg-blue-800:hover,
+.hover\:bg-blue-700:hover,
+.hover\:bg-blue-600:hover {
+    background-color: var(--flow-primary-hover) !important;
+}
+
+.text-blue-900,
+.text-blue-800,
+.text-blue-700,
+.hover\:text-blue-600:hover {
+    color: var(--flow-primary) !important;
+}
+
+.border-blue-900,
+.border-blue-600,
+.border-blue-800\/60 {
+    border-color: var(--flow-primary) !important;
+}
+
+/* Garante 1 cor no menu mobile (evita variação por /opacidade do Tailwind) */
+#mobile-menu {
+    background-color: var(--flow-primary) !important;
+    border-color: var(--flow-primary) !important;
+}
+
+.text-brand-light {
+    color: color-mix(in srgb, var(--flow-primary) 70%, white) !important;
+}
+
+.flow-btn {
+    background-color: var(--flow-primary) !important;
+    border-color: var(--flow-primary) !important;
+    color: #ffffff !important;
+    transition: background-color .18s ease, border-color .18s ease, color .18s ease, transform .18s ease;
+}
+
+.flow-btn:hover {
+    background-color: var(--flow-primary-hover) !important;
+    border-color: var(--flow-primary-hover) !important;
+}
+
+.flow-btn:active {
+    background-color: var(--flow-primary-hover) !important;
+    border-color: var(--flow-primary-hover) !important;
+}
+
+.flow-btn.flow-btn-light {
+    background-color: #ffffff !important;
+    border-color: #ffffff !important;
+    color: var(--flow-primary) !important;
+}
+
+.flow-btn.flow-btn-light:hover {
+    background-color: #f8fafc !important;
+    border-color: #f8fafc !important;
+    color: var(--flow-primary) !important;
+}
+
+.flow-btn:disabled,
+.flow-btn[aria-disabled="true"] {
+    opacity: 0.65;
+    cursor: not-allowed;
+    transform: none !important;
 }
 
 .top-header {
@@ -32,7 +176,7 @@ body {
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(30, 58, 138, 0.18);
+    box-shadow: 0 2px 8px rgba(10, 25, 49, 0.18);
 }
 
 .brand-icon img {
@@ -45,7 +189,7 @@ body {
 .brand-title {
     color: var(--flow-primary);
     font-size: 1.05rem;
-    font-weight: 800;
+    font-weight: 400;
     line-height: 1.1;
     letter-spacing: -0.01em;
     white-space: nowrap;

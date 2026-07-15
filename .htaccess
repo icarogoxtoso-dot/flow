@@ -1,6 +1,9 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
+    # Allow only the public endpoint needed by the app
+    RewriteRule ^secure/save_profile\.php$ - [L]
+
     # Block dotfiles (allow ACME challenge)
     RewriteRule (^|/)\.(?!well-known/) - [F,L]
 

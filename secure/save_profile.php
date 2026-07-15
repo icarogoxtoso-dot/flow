@@ -1,7 +1,6 @@
 <?php
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/config.php';
-require_once __DIR__ . '/stripe_db.php';
 startSecureSession();
 
 $cfg = appConfig();
@@ -89,6 +88,7 @@ function ensureProfessionalTableColumns(PDO $pdo): void
         'tags' => "VARCHAR(255) NULL",
         'descricao' => "TEXT NULL",
         'fotos_trabalhos' => "TEXT NULL",
+        'marketplace_products' => "TEXT NULL",
         'desde' => "YEAR NULL",
         'nota' => "DECIMAL(2,1) NOT NULL DEFAULT 0.0",
         'whatsapp' => "VARCHAR(20) NULL",
@@ -302,6 +302,67 @@ function saveUploadedWorkPhotos(array $files, string &$uploadError): array
     return $savedPaths;
 }
 
+function saveUploadedMarketplaceImage(array $file, string &$uploadError): ?string
+{
+    $uploadError = '';
+    $maxBytes = 10 * 1024 * 1024; // 10MB
+
+    if (!isset($file['error']) || $file['error'] === UPLOAD_ERR_NO_FILE) {
+        return null;
+    }
+
+    if ($file['error'] !== UPLOAD_ERR_OK) {
+        $uploadError = 'Não foi possível enviar a foto do produto.';
+        return null;
+    }
+
+    if ((int) ($file['size'] ?? 0) > $maxBytes) {
+        $uploadError = 'A foto do produto deve ter no máximo 10MB.';
+        return null;
+    }
+
+    $tmpPath = (string) ($file['tmp_name'] ?? '');
+    if ($tmpPath === '' || !is_uploaded_file($tmpPath)) {
+        $uploadError = 'Arquivo de foto do produto inválido.';
+        return null;
+    }
+
+    $finfo = new finfo(FILEINFO_MIME_TYPE);
+    $mimeType = (string) $finfo->file($tmpPath);
+    $allowedTypes = [
+        'image/jpeg' => 'jpg',
+        'image/png' => 'png',
+        'image/webp' => 'webp',
+    ];
+
+    if (!isset($allowedTypes[$mimeType])) {
+        $uploadError = 'Formato de imagem do produto não suportado. Use JPG, PNG ou WEBP.';
+        return null;
+    }
+
+    $uploadDir = __DIR__ . '/../uploads/marketplace';
+    if (!is_dir($uploadDir) && !mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
+        $uploadError = 'Não foi possível preparar a pasta de upload dos produtos.';
+        return null;
+    }
+
+    try {
+        $suffix = bin2hex(random_bytes(8));
+    } catch (Throwable $e) {
+        $suffix = uniqid('', true);
+    }
+
+    $filename = 'product_' . $suffix . '.' . $allowedTypes[$mimeType];
+    $targetPath = $uploadDir . '/' . $filename;
+
+    if (!move_uploaded_file($tmpPath, $targetPath)) {
+        $uploadError = 'Não foi possível salvar a foto do produto.';
+        return null;
+    }
+
+    return appPath('/uploads/marketplace/' . $filename);
+}
+
 function normalizeOptionalUrl(string $value): string
 {
     $value = trim($value);
@@ -358,7 +419,9 @@ $success = '';
 $existingProfile = null;
 $existingWorkPhotos = [];
 $existingProfilePhoto = null;
+$existingMarketplaceProducts = [];
 $profilePhotoJustUploaded = false;
+$marketplaceSlots = [];
 $formValues = [
     'nome' => '',
     'cidade' => '',
@@ -373,6 +436,15 @@ $formValues = [
     'youtube' => '',
     'online' => true,
 ];
+
+for ($i = 1; $i <= 4; $i++) {
+    $marketplaceSlots[$i] = [
+        'title' => '',
+        'price' => '',
+        'url' => '',
+        'image' => '',
+    ];
+}
 
 try {
     if (!empty($cfg['app_auto_migrate'])) {
@@ -395,15 +467,10 @@ try {
         ensureProfessionalPublicIds($pdo);
     } else {
         $pdo = new PDO("mysql:host=$host;dbname=$db;charset=$charset", $user, $pass, $options);
-    }
-
-    $requireSubscription = envBool('REQUIRE_SUBSCRIPTION', true);
-    if ($requireSubscription && !currentUserIsAdmin()) {
-        ensureStripeTablesOrFail($pdo);
-        if (!userCanCreateProfile($pdo, (int) $authUserId)) {
-            header('Location: ' . appPath('/access/checkout.html'));
-            exit;
-        }
+        // Garante colunas novas (ex.: marketplace_products) mesmo sem auto-migrate.
+        ensureProfessionalTableColumns($pdo);
+        ensureProfessionalOwnershipConstraints($pdo);
+        ensureProfessionalPublicIds($pdo);
     }
 
     $ownerStmt = $pdo->prepare('SELECT * FROM profissionais WHERE user_id = :user_id LIMIT 1');
@@ -431,6 +498,28 @@ try {
             $existingWorkPhotos = array_values(array_filter(array_map(static function ($item) {
                 return is_string($item) ? trim($item) : '';
             }, $decoded)));
+        }
+
+        $marketRaw = (string) ($existingProfile['marketplace_products'] ?? '');
+        $marketDecoded = json_decode($marketRaw, true);
+        if (is_array($marketDecoded)) {
+            $existingMarketplaceProducts = array_values(array_filter(array_map(static function ($item) {
+                return is_array($item) ? $item : null;
+            }, $marketDecoded)));
+        }
+
+        for ($i = 1; $i <= 4; $i++) {
+            $row = $existingMarketplaceProducts[$i - 1] ?? null;
+            if (!is_array($row)) {
+                continue;
+            }
+
+            $marketplaceSlots[$i] = [
+                'title' => is_string($row['title'] ?? null) ? trim((string) $row['title']) : '',
+                'price' => is_string($row['price'] ?? null) ? trim((string) $row['price']) : '',
+                'url' => is_string($row['url'] ?? null) ? trim((string) $row['url']) : '',
+                'image' => is_string($row['image'] ?? null) ? trim((string) $row['image']) : '',
+            ];
         }
     }
 } catch (Throwable $e) {
@@ -611,9 +700,70 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $error === '') {
         $error = 'Você pode manter/enviar no máximo 6 fotos de trabalhos.';
     }
 
+    $marketplaceItems = [];
+    if ($error === '') {
+        for ($i = 1; $i <= 4; $i++) {
+            $title = trim((string) ($_POST['mp_title_' . $i] ?? ''));
+            $price = trim((string) ($_POST['mp_price_' . $i] ?? ''));
+            $urlRaw = trim((string) ($_POST['mp_url_' . $i] ?? ''));
+            $existingImage = trim((string) ($_POST['mp_existing_image_' . $i] ?? ''));
+            $removeImage = isset($_POST['mp_remove_image_' . $i]);
+
+            $marketplaceSlots[$i]['title'] = $title;
+            $marketplaceSlots[$i]['price'] = $price;
+            $marketplaceSlots[$i]['url'] = $urlRaw;
+            $marketplaceSlots[$i]['image'] = $existingImage;
+
+            if ($title === '') {
+                continue;
+            }
+            $titleLen = function_exists('mb_strlen') ? mb_strlen($title) : strlen($title);
+            if ($titleLen > 60) {
+                $error = 'O nome do produto ' . (string) $i . ' deve ter no máximo 60 caracteres.';
+                break;
+            }
+            $priceLen = function_exists('mb_strlen') ? mb_strlen($price) : strlen($price);
+            if ($priceLen > 20) {
+                $error = 'O preço do produto ' . (string) $i . ' deve ter no máximo 20 caracteres.';
+                break;
+            }
+
+            $url = '';
+            if ($urlRaw !== '') {
+                $url = normalizeOptionalUrl($urlRaw);
+                if ($url === '') {
+                    $error = 'Link do produto ' . (string) $i . ' inválido.';
+                    break;
+                }
+            }
+
+            $imagePath = $removeImage ? '' : $existingImage;
+            $uploadErr = '';
+            $uploaded = saveUploadedMarketplaceImage($_FILES['mp_image_' . $i] ?? [], $uploadErr);
+            if ($uploadErr !== '') {
+                $error = $uploadErr;
+                break;
+            }
+            if ($uploaded !== null) {
+                $imagePath = $uploaded;
+            }
+
+            $marketplaceSlots[$i]['url'] = $url;
+            $marketplaceSlots[$i]['image'] = $imagePath;
+
+            $marketplaceItems[] = [
+                'title' => $title,
+                'price' => $price,
+                'url' => $url,
+                'image' => $imagePath,
+            ];
+        }
+    }
+
     if ($error === '') {
         try {
             $workPhotosJson = json_encode($allWorkPhotos, JSON_UNESCAPED_SLASHES);
+            $marketplaceJson = json_encode($marketplaceItems, JSON_UNESCAPED_SLASHES);
             $online = $formValues['online'] ? 1 : 0;
 
             if ($existingProfile && isset($existingProfile['id'])) {
@@ -629,11 +779,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $error === '') {
                          instagram = :instagram,
                          site_url = :site_url,
                          facebook = :facebook,
-                         youtube = :youtube,
-                         online = :online,
-                         foto_perfil = :foto_perfil,
-                         fotos_trabalhos = :fotos_trabalhos
-                     WHERE id = :id AND user_id = :user_id'
+                          youtube = :youtube,
+                          online = :online,
+                          foto_perfil = :foto_perfil,
+                          fotos_trabalhos = :fotos_trabalhos,
+                          marketplace_products = :marketplace_products
+                      WHERE id = :id AND user_id = :user_id'
                 );
 
                 $stmt->execute([
@@ -651,6 +802,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $error === '') {
                     ':online' => $online,
                     ':foto_perfil' => $profilePhotoPath !== '' ? $profilePhotoPath : null,
                     ':fotos_trabalhos' => $workPhotosJson,
+                    ':marketplace_products' => $marketplaceJson,
                     ':id' => (int) $existingProfile['id'],
                     ':user_id' => (int) $authUserId,
                 ]);
@@ -659,11 +811,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $error === '') {
                     'INSERT INTO profissionais (
                         nome, cidade, bairro, tags, descricao, desde, whatsapp,
                         instagram, site_url, facebook, youtube, online,
-                        foto_perfil, fotos_trabalhos, nota, user_id, public_id
+                        foto_perfil, fotos_trabalhos, marketplace_products, nota, user_id, public_id
                     ) VALUES (
                         :nome, :cidade, :bairro, :tags, :descricao, :desde, :whatsapp,
                         :instagram, :site_url, :facebook, :youtube, :online,
-                        :foto_perfil, :fotos_trabalhos, 0.0, :user_id, :public_id
+                        :foto_perfil, :fotos_trabalhos, :marketplace_products, 0.0, :user_id, :public_id
                     )'
                 );
 
@@ -682,6 +834,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $error === '') {
                     ':online' => $online,
                     ':foto_perfil' => $profilePhotoPath !== '' ? $profilePhotoPath : null,
                     ':fotos_trabalhos' => $workPhotosJson,
+                    ':marketplace_products' => $marketplaceJson,
                     ':user_id' => (int) $authUserId,
                     ':public_id' => generateUniquePublicId($pdo),
                 ]);
@@ -714,6 +867,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $error === '') {
                 $existingWorkPhotos = array_values(array_filter(array_map(static function ($item) {
                     return is_string($item) ? trim($item) : '';
                 }, $decoded)));
+            }
+
+            $existingMarketplaceProducts = [];
+            for ($i = 1; $i <= 4; $i++) {
+                $marketplaceSlots[$i] = [
+                    'title' => '',
+                    'price' => '',
+                    'url' => '',
+                    'image' => '',
+                ];
+            }
+            $marketRaw = (string) ($existingProfile['marketplace_products'] ?? '');
+            $marketDecoded = json_decode($marketRaw, true);
+            if (is_array($marketDecoded)) {
+                $existingMarketplaceProducts = array_values(array_filter(array_map(static function ($item) {
+                    return is_array($item) ? $item : null;
+                }, $marketDecoded)));
+            }
+            for ($i = 1; $i <= 4; $i++) {
+                $row = $existingMarketplaceProducts[$i - 1] ?? null;
+                if (!is_array($row)) {
+                    continue;
+                }
+                $marketplaceSlots[$i] = [
+                    'title' => is_string($row['title'] ?? null) ? trim((string) $row['title']) : '',
+                    'price' => is_string($row['price'] ?? null) ? trim((string) $row['price']) : '',
+                    'url' => is_string($row['url'] ?? null) ? trim((string) $row['url']) : '',
+                    'image' => is_string($row['image'] ?? null) ? trim((string) $row['image']) : '',
+                ];
             }
 
             $success = 'Perfil salvo com sucesso.';
@@ -778,6 +960,43 @@ if (preg_match('/^[a-f0-9]{32}$/', $profilePublicId)) {
         @media (prefers-reduced-motion: reduce) {
             .step-panel-enter { animation: none; }
         }
+        .save-toast {
+            position: fixed;
+            left: 50%;
+            bottom: 1.25rem;
+            transform: translateX(-50%);
+            z-index: 9999;
+            max-width: min(520px, calc(100vw - 2rem));
+            background: rgba(15, 23, 42, 0.92);
+            color: #fff;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            box-shadow: 0 16px 40px rgba(2, 6, 23, 0.35);
+            border-radius: 1rem;
+            padding: 0.9rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .18s ease, transform .18s ease;
+        }
+        .save-toast.is-visible {
+            opacity: 1;
+            transform: translateX(-50%) translateY(-4px);
+        }
+        .save-toast__icon {
+            width: 2.25rem;
+            height: 2.25rem;
+            border-radius: 999px;
+            background: rgba(34, 197, 94, 0.18);
+            border: 1px solid rgba(34, 197, 94, 0.35);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+        }
+        .save-toast__text strong { display: block; font-weight: 800; }
+        .save-toast__text span { display: block; font-size: 0.85rem; color: rgba(226, 232, 240, 0.9); }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-900 min-h-screen">
@@ -847,6 +1066,32 @@ if (preg_match('/^[a-f0-9]{32}$/', $profilePublicId)) {
                 <div class="mb-4 rounded-xl border border-green-200 bg-green-50 text-green-700 px-4 py-3 text-sm font-medium">
                     <?php echo htmlspecialchars($success, ENT_QUOTES, 'UTF-8'); ?>
                 </div>
+            <?php endif; ?>
+
+            <?php if ($success !== '' && $profileLink !== ''): ?>
+                <div id="saveToast" class="save-toast" role="status" aria-live="polite" data-redirect="<?php echo htmlspecialchars($profileLink, ENT_QUOTES, 'UTF-8'); ?>">
+                    <div class="save-toast__icon" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div class="save-toast__text">
+                        <strong>Salvo com sucesso</strong>
+                        <span>Redirecionando para seu perfil…</span>
+                    </div>
+                </div>
+                <script>
+                    (function () {
+                        const toast = document.getElementById('saveToast');
+                        if (!toast) return;
+                        const redirectUrl = toast.getAttribute('data-redirect') || '';
+                        requestAnimationFrame(() => toast.classList.add('is-visible'));
+                        if (!redirectUrl) return;
+                        setTimeout(() => {
+                            window.location.href = redirectUrl;
+                        }, 2000);
+                    })();
+                </script>
             <?php endif; ?>
 
             <form method="post" enctype="multipart/form-data" id="profileForm" class="bg-white rounded-2xl md:rounded-3xl border border-slate-200 shadow-sm p-4 sm:p-6 md:p-8">
@@ -963,6 +1208,58 @@ if (preg_match('/^[a-f0-9]{32}$/', $profilePublicId)) {
                             <?php endforeach; ?>
                         </div>
                     <?php endif; ?>
+
+                    <div class="pt-6 border-t border-slate-200">
+                        <h3 class="text-xl md:text-2xl font-extrabold text-slate-900">Mini marketplace</h3>
+                        <p class="text-sm md:text-[1.05rem] text-slate-500 mt-2">Cadastre até 4 produtos/serviços para aparecerem no seu perfil público.</p>
+
+                        <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <?php for ($i = 1; $i <= 4; $i++): ?>
+                                <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                                    <p class="text-xs font-black tracking-wide uppercase text-slate-500">Produto <?php echo (int) $i; ?></p>
+
+                                    <div class="mt-3 space-y-3">
+                                        <div>
+                                            <label class="block text-sm font-semibold text-slate-700 mb-1" for="mp_title_<?php echo (int) $i; ?>">Nome</label>
+                                            <input id="mp_title_<?php echo (int) $i; ?>" name="mp_title_<?php echo (int) $i; ?>" type="text" value="<?php echo htmlspecialchars($marketplaceSlots[$i]['title'], ENT_QUOTES, 'UTF-8'); ?>" placeholder="Ex: Instalação de ar-condicionado" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base font-medium focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500">
+                                        </div>
+
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            <div>
+                                                <label class="block text-sm font-semibold text-slate-700 mb-1" for="mp_price_<?php echo (int) $i; ?>">Preço (opcional)</label>
+                                                <input id="mp_price_<?php echo (int) $i; ?>" name="mp_price_<?php echo (int) $i; ?>" type="text" value="<?php echo htmlspecialchars($marketplaceSlots[$i]['price'], ENT_QUOTES, 'UTF-8'); ?>" placeholder="Ex: R$ 99" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base font-medium focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-semibold text-slate-700 mb-1" for="mp_url_<?php echo (int) $i; ?>">Link (opcional)</label>
+                                                <input id="mp_url_<?php echo (int) $i; ?>" name="mp_url_<?php echo (int) $i; ?>" type="text" value="<?php echo htmlspecialchars($marketplaceSlots[$i]['url'], ENT_QUOTES, 'UTF-8'); ?>" placeholder="Ex: https://..." class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base font-medium focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500">
+                                            </div>
+                                        </div>
+
+                                        <input type="hidden" name="mp_existing_image_<?php echo (int) $i; ?>" value="<?php echo htmlspecialchars($marketplaceSlots[$i]['image'], ENT_QUOTES, 'UTF-8'); ?>">
+
+                                        <div class="rounded-xl border border-slate-200 bg-white p-3">
+                                            <div class="flex items-center justify-between gap-3">
+                                                <p class="text-sm font-semibold text-slate-700">Foto do produto (opcional)</p>
+                                                <?php if ($marketplaceSlots[$i]['image'] !== ''): ?>
+                                                    <label class="text-xs font-semibold text-slate-500 inline-flex items-center gap-2 cursor-pointer">
+                                                        <input type="checkbox" name="mp_remove_image_<?php echo (int) $i; ?>" value="1">
+                                                        Remover foto
+                                                    </label>
+                                                <?php endif; ?>
+                                            </div>
+                                            <?php if ($marketplaceSlots[$i]['image'] !== ''): ?>
+                                                <div class="mt-3 flex items-center gap-3">
+                                                    <img src="<?php echo htmlspecialchars($marketplaceSlots[$i]['image'], ENT_QUOTES, 'UTF-8'); ?>" alt="Foto do produto <?php echo (int) $i; ?>" class="w-14 h-14 rounded-xl object-cover border border-slate-200">
+                                                    <p class="text-xs text-slate-500 break-all"><?php echo htmlspecialchars($marketplaceSlots[$i]['image'], ENT_QUOTES, 'UTF-8'); ?></p>
+                                                </div>
+                                            <?php endif; ?>
+                                            <input type="file" name="mp_image_<?php echo (int) $i; ?>" accept="image/jpeg,image/png,image/webp" class="mt-3 block w-full text-sm">
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endfor; ?>
+                        </div>
+                    </div>
                 </section>
 
                 <section data-step="4" class="step-panel space-y-6 hidden">
@@ -1334,4 +1631,3 @@ if (preg_match('/^[a-f0-9]{32}$/', $profilePublicId)) {
     </script>
 </body>
 </html>
-

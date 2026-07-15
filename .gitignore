@@ -5,6 +5,9 @@ storage/
 uploads/*
 !uploads/.htaccess
 
+# Local backups
+*.bak-*
+
 # OS / editor
 Thumbs.db
 Desktop.ini
